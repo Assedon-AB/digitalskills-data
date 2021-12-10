@@ -20,7 +20,7 @@ for year in years:
             temp_list.append(ad)
     
     print(len(temp_list))
-    with open('/Users/andreassamuelsson/Projects/Jobtechdev/digspec-data/ads/{}.json'.format(year), 'w') as fp:
+    with open('/Users/andreassamuelsson/Projects/Assedon/digspec-data/ads/{}.json'.format(year), 'w') as fp:
         json.dump({'it_ads': temp_list}, fp)
 
 
