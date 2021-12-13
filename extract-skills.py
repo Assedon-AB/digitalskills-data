@@ -1,4 +1,4 @@
-""" Finds skills and saves as DateTime index """
+""" Finds skills and saves as DateTime series """
 
 def get_ads_data():
     """ Gets ads data """
