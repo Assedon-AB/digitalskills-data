@@ -1,13 +1,56 @@
 """ Finds skills and saves as DateTime series """
+import json
+import pandas as pd
+import numpy as np
+import csv
+import re
 
 def get_ads_data():
     """ Gets ads data """
-    pass
+    years = ["2006","2007",]#"2008",] #"2009","2010","2011","2012","2013","2014","2015","2016","2017","2018","2019","2020","2021"]
+    ads = []
+    for year in years:
+        ad = json.load(open(f"./ads/{year}.json", "r"))
+        ads.extend(ad)
+    return ads
 
-def extract_skill(skill):
-    """ Extracts the amount of times the skill occurs based on whitelist """
-    pass
+def get_whitelist():
+    """ Reads in whitelist """
+    file = open("./whitelist.csv")
+    csvreader = csv.reader(file)
+    header = next(csvreader)
+    rows = []
+    for row in csvreader:
+        rows.append(row)
+    file.close()
+    return rows
 
 def extract_skills():
     """ Goes through all skills in whitelist and extracts skill """
-    pass
+    ads = get_ads_data()
+    whitelist = get_whitelist()
+    num = 5661 # TODO: Change from hardcoded num -> dynamic value
+    complete_date = pd.to_datetime("1st of January, 2006") + pd.to_timedelta(np.arange(num), 'D')
+    index = pd.DatetimeIndex(complete_date)
+    skills_data = {}
+    for row in whitelist:
+        skills_data[row[2]] = pd.Series([0] * num, index=index)
+
+    for ad in ads:
+        if len(ad["date"]) > 9:
+            for row in whitelist:
+                skill = row[0]
+                p = re.compile('[-_\\s^]' + re.escape(skill) + '[\\s$-_]')
+                if bool(p.search(ad["date"].lower())):
+                    skills_data[row[2]][ad["date"]] += 1
+
+
+    skills_data_json = skills_data.copy()
+    for key in skills_data.keys():
+        skills_data_json[key] = skills_data[key].to_json(indent=4)
+
+    with open(f"data/skills_data.json", "w", encoding="utf-8") as fd:
+        json.dump(skills_data_json, fd, ensure_ascii=False, indent=4)
+
+if __name__ == "__main__":
+    extract_skills()
