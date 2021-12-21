@@ -7,7 +7,7 @@ import re
 
 def get_ads_data():
     """ Gets ads data """
-    years = ["2006","2007",]#"2008",] #"2009","2010","2011","2012","2013","2014","2015","2016","2017","2018","2019","2020","2021"]
+    years = ["2020",] #"2021"]# ["2006","2007", "2008", "2009","2010","2011","2012","2013","2014","2015","2016","2017","2018","2019","2020","2021"]
     ads = []
     for year in years:
         ad = json.load(open(f"./ads/{year}.json", "r"))
@@ -34,23 +34,36 @@ def extract_skills():
     index = pd.DatetimeIndex(complete_date)
     skills_data = {}
     for row in whitelist:
-        skills_data[row[2]] = pd.Series([0] * num, index=index)
+        skills_data[row[2]] = {"series": [], "adIds": []}
+        skills_data[row[2]]["series"] = pd.Series([0] * num, index=index)
 
-    for ad in ads:
-        if len(ad["date"]) > 9:
-            for row in whitelist:
-                skill = row[0]
-                p = re.compile('[-_\\s^]' + re.escape(skill) + '[\\s$-_]')
-                if bool(p.search(ad["date"].lower())):
-                    skills_data[row[2]][ad["date"]] += 1
+    try:
+        for adId, ad in enumerate(ads):
+            if len(ad["date"]) > 9:
+                date = ad["date"].split("T")[0].split(" ")[0]
+                for row in whitelist:
+                    skill = row[0]
+                    p = re.compile('[-_\\s^]' + re.escape(skill) + '[\\s$-_]')
+                    if bool(p.search(ad["doc_text"].lower())):
+                        skills_data[row[2]]["series"][date] += 1
+                        skills_data[row[2]]["adIds"].append(adId)
 
+        skills_data_json = skills_data.copy()
+        for key in skills_data.keys():
+            skills_data_json[key]["series"] = skills_data[key]["series"].to_json(indent=4)
+            skills_data_json[key]["adIds"] = skills_data[key]["adIds"]
 
-    skills_data_json = skills_data.copy()
-    for key in skills_data.keys():
-        skills_data_json[key] = skills_data[key].to_json(indent=4)
+        with open(f"data/skills_data.json", "w", encoding="utf-8") as fd:
+            json.dump(skills_data_json, fd, ensure_ascii=False, indent=4)
+    except Exception as err:
+        skills_data_json = skills_data.copy()
+        print(skills_data_json)
+        for key in skills_data.keys():
+            skills_data_json[key]["series"] = skills_data[key]["series"].to_json(indent=4)
+            skills_data_json[key]["adIds"] = skills_data[key]["adIds"]
 
-    with open(f"data/skills_data.json", "w", encoding="utf-8") as fd:
-        json.dump(skills_data_json, fd, ensure_ascii=False, indent=4)
+        with open(f"data/skills_data.json", "w", encoding="utf-8") as fd:
+            json.dump(skills_data_json, fd, ensure_ascii=False, indent=4)
 
 if __name__ == "__main__":
     extract_skills()
