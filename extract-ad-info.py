@@ -5,7 +5,7 @@ import json
 
 def get_raw_data():
     """ Gets raw data as list from files """
-    years = ["2020", "2021"]#["2006","2007","2008", "2009","2010","2011","2012","2013","2014","2015","2016","2017","2018","2019","2020","2021"]
+    years = ["2020", "2021"] #["2006","2007","2008", "2009","2010","2011","2012","2013","2014","2015","2016","2017","2018","2019","2020","2021"]
     data_list = []
     for year in years:
       with open(f"data/{year}.json", "r") as fd:
@@ -17,6 +17,8 @@ def get_raw_data():
 def extract_fields(ads_data):
     """ Extract relevant fields from list of ads data """
     documents_input = []
+
+    # Relevant occupation groups.
     it_concept_ids = ["UXKZ_3zZ_ipB", "DJh5_yyF_hEM", "Q5DF_juj_8do", "D9SL_mtn_vGM", "cBBa_ngH_fCx", "BAeH_eg8_  T2d", "UxT1_tPF_Kbg", "MYAz_x9m_2LJ", "VCpu_5EN_bBt", "Fv7d_YhP_YmS"]
 
     for ad in ads_data:
