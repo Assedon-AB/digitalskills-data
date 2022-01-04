@@ -35,9 +35,8 @@ def save_skills_data_to_json(skills_data):
         json.dump(skills_data_json, fd, ensure_ascii=False, indent=4)
 
 
-def extract_skills():
+def extract_skills(ads):
     """ Goes through all skills in whitelist and extracts skill """
-    ads = get_ads_data()
     whitelist = get_whitelist()
 
     num = 5661 # TODO: Change from hardcoded num -> dynamic value
@@ -64,6 +63,8 @@ def extract_skills():
     except Exception as err:
         print(err)
         save_skills_data_to_json(skills_data)
+    return skills_data
 
 if __name__ == "__main__":
-    extract_skills()
+    ads = get_ads_data()
+    extract_skills(ads)
