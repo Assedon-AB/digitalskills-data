@@ -13,7 +13,7 @@ def main():
     skills_data = extract_skills(ads)
     # Extrahera kompetens, yrke och mjukavärden
     enriched_data = enrich_ads(ads)
-    
+
     print("Skills data", skills_data)
     print("Enriched data", enriched_data)
 

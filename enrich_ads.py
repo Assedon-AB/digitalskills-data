@@ -51,6 +51,17 @@ def enrich_ads(documents_input):
                                     occupations[occupation_name]["traits"][trait_name] += 1
                                 else:
                                     occupations[occupation_name]["traits"][trait_name] = 1
+
+                            for geo in ad["enriched_candidates"]["geos"]:
+                                geo_name = geo["concept_label"].lower().strip()
+                                if "geos" not in occupations[occupation_name]:
+                                    occupations[occupation_name]["geos"] = {}
+
+                                if geo_name in occupations[occupation_name]["geos"]:
+                                    occupations[occupation_name]["geos"][geo_name] += 1
+                                else:
+                                    occupations[occupation_name]["geos"][geo_name] = 1
+
                 except Exception as err:
                     print("Error:", err)
 
