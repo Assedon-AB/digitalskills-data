@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 import csv
 import re
+from spinner import Spinner
 
 def get_ads_data():
     """ Gets ads data """
@@ -48,6 +49,9 @@ def extract_skills(ads):
         skills_data[row[2]] = {"series": [], "adIds": []}
         skills_data[row[2]]["series"] = pd.Series([0] * num, index=index)
 
+    print(f"> Extracting skills from ads data")
+    spinner = Spinner()
+    spinner.start()
     try:
         for adId, ad in enumerate(ads):
             if len(ad["date"]) > 9:
@@ -63,6 +67,8 @@ def extract_skills(ads):
     except Exception as err:
         print(err)
         save_skills_data_to_json(skills_data)
+
+    spinner.stop()
     return skills_data
 
 if __name__ == "__main__":

@@ -1,10 +1,13 @@
 """ Creates relationship between skills, traits, and jobs. """
 import json
 import operator
+from spinner import Spinner
 
 def create_relationships(skills_data, jobs_data):
     jobs =  {}
     skills = {}
+    spinner = Spinner()
+    spinner.start()
     for job in jobs_data.keys():
         try:
             for adId in jobs_data[job]["adIds"]:
@@ -47,6 +50,7 @@ def create_relationships(skills_data, jobs_data):
     with open("data/skill-relationship.json", "w") as fd:
         json.dump(skills, fd)
 
+    spinner.stop()
     return skills, jobs
 
 if __name__ == "__main__":

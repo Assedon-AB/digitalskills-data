@@ -2,10 +2,12 @@
 Extracts ad information(id, title, description, date) from raw data into ad json.
 """
 import json
+from spinner import Spinner
 
 def get_raw_data():
     """ Gets raw data as list from files """
     years = ["2008"]#["2020", "2021"] #["2006","2007","2008", "2009","2010","2011","2012","2013","2014","2015","2016","2017","2018","2019","2020","2021"]
+    print(f"> Reading data from years: {', '.join(years)}")
     data_list = []
     for year in years:
       with open(f"data/{year}.json", "r") as fd:
@@ -38,6 +40,10 @@ def extract_ad_info():
     all_ads_data = get_raw_data()
     all_ads_info = []
 
+    print(f"> Extracting relevant fields from data")
+    spinner = Spinner()
+    spinner.start()
+
     for ads_data in all_ads_data:
         year = ads_data.pop()
         documents_input = extract_fields(ads_data)
@@ -46,6 +52,8 @@ def extract_ad_info():
 
         with open(f"ads/{year}.json", "w", encoding="utf-8") as f:
               json.dump(documents_input, f, ensure_ascii=False, indent=4)
+
+    spinner.stop()
 
     return all_ads_info
 

@@ -1,9 +1,14 @@
 import json
 import requests
+from spinner import Spinner
+
 
 def enrich_ads(documents_input):
     occupations = {}
 
+    print(f"> Running Enrichment API on ads data")
+    spinner = Spinner()
+    spinner.start()
     try:
         headers = {
             "api-key": "YidceGExXHhhN1x4YzdceGY1VCtceDA0S1x4MDJ3WWNceDkwXHhlNFx4ZTRceGM1XHhhOFx4MGI5XHhiNic",
@@ -14,7 +19,6 @@ def enrich_ads(documents_input):
         adId = 0
         while len(documents_input) >= 100:
             i+=1
-            print(f"Running round {i}")
             body = json.dumps({
                 "documents_input": documents_input[:100],
                 "include_terms_info": False,
@@ -70,10 +74,12 @@ def enrich_ads(documents_input):
         with open("enriched/2020-enriched-jobs.json", "w") as fd:
             json.dump(occupations, fd, ensure_ascii=False, indent=4)
 
+        spinner.stop()
         return occupations
     except:
         with open("enriched/2020-enriched-jobs.json", "w") as fd:
             json.dump(occupations, fd, ensure_ascii=False, indent=4)
+        spinner.stop()
         return occupations
 
 if __name__ == "__main__":
