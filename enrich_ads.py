@@ -48,7 +48,7 @@ def enrich_ads(documents_input):
                         occupation_name = occupation["concept_label"].lower().strip()
                         if occupation["prediction"] >= 0.8:
                             if occupation_name not in occupations:
-                                occupations[occupation_name] = { "series": pd.Series([0] * num, index=index) }
+                                occupations[occupation_name] = { "series": pd.Series([0] * num, index=index), "employers": {} }
 
                             adObj = None
                             if ad["doc_id"] != "None":
@@ -59,6 +59,11 @@ def enrich_ads(documents_input):
                             if adObj:
                                 date = adObj["date"].split("T")[0].split(" ")[0]
                                 occupations[occupation_name]["series"][date] += 1
+
+                                if adObj["employer"] in occupations[occupation_name]["employers"]:
+                                    occupations[occupation_name]["employers"][adObj["employer"]] += 1
+                                else:
+                                    occupations[occupation_name]["employers"][adObj["employer"]] = 1
 
 
                                 if "adIds" not in occupations[occupation_name]:
@@ -117,6 +122,6 @@ def enrich_ads(documents_input):
         return occupations
 
 if __name__ == "__main__":
-    with open("ads/2007.json", "r") as fd:
+    with open("ads/2008.json", "r") as fd:
         documents_input = json.load(fd)
         enrich_ads(documents_input)
