@@ -29,6 +29,7 @@ def enrich_ads(documents_input):
             resp = req.json()
             for idx, ad in enumerate(resp):
                 try:
+                    occupations_found = []
                     for occupation in ad["enriched_candidates"]["occupations"]:
                         occupation_name = occupation["concept_label"].lower().strip()
                         if occupation["prediction"] >= 0.8:
@@ -45,6 +46,17 @@ def enrich_ads(documents_input):
                                 occupations[occupation_name]["count"] += 1
                             else:
                                 occupations[occupation_name]["count"] = 1
+
+                            for occ in occupations_found:
+                                if "similiar_jobs" not in occupations[occupation_name]:
+                                    occupations[occupation_name]["similiar_jobs"] = {}
+
+                                if occ in occupations[occupation_name]["similiar_jobs"]:
+                                    occupations[occupation_name]["similiar_jobs"][occ] += 1
+                                else:
+                                    occupations[occupation_name]["similiar_jobs"][occ] = 1
+
+                            occupations_found.append(occupation_name);
 
                             for trait in ad["enriched_candidates"]["traits"]:
                                 trait_name= trait["concept_label"].lower().strip()
