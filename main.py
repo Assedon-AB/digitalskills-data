@@ -12,13 +12,13 @@ def main():
 
     # Extrahera kompetenser
     skills_data = extract_skills(ads)
-    # Extrahera kompetens, yrke och mjukavärden
+    # Extrahera yrke och mjukavärden
     enriched_data = enrich_ads(ads)
 
+    # Skapa relationer mellan kompetenser, yrke och mjukvärden.
     skills_data, jobs_data = create_relationships(skills_data, enriched_data)
     print(skills_data)
     print(jobs_data)
-    # Bygg relationer mellan kompetenser, yrke och mjukvärden. -> relationship-builder.py
 
     # Skapa en prognos av yrken och kompetenser -> skills-prediction.py
     # Spara ner slutresultatet i en databas.

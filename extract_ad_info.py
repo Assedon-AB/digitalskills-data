@@ -30,7 +30,8 @@ def extract_fields(ads_data):
                   "date": ad["publication_date"],
                   "doc_id": ad["id"],
                   "doc_headline": ad["headline"].lower(),
-                  "doc_text": ad["description"]["text"].replace("\n\n", "").replace("\n", " ").lower()
+                  "doc_text": ad["description"]["text"].replace("\n\n", "").replace("\n", " ").lower(),
+                  "employer": ad["employer"]["name"]
               })
 
     return documents_input

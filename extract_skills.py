@@ -8,7 +8,7 @@ from spinner import Spinner
 
 def get_ads_data():
     """ Gets ads data """
-    years = ["2020"] # ["2006","2007", "2008", "2009","2010","2011","2012","2013","2014","2015","2016","2017","2018","2019","2020","2021"]
+    years = ["2008"] # ["2006","2007", "2008", "2009","2010","2011","2012","2013","2014","2015","2016","2017","2018","2019","2020","2021"]
     ads = []
     for year in years:
         ad = json.load(open(f"./ads/{year}.json", "r"))
@@ -46,7 +46,7 @@ def extract_skills(ads):
 
     skills_data = {}
     for row in whitelist:
-        skills_data[row[2]] = {"series": [], "adIds": []}
+        skills_data[row[2]] = {"series": [], "adIds": [], "subgroup": row[3], "maingroup": row[4], "employers": {}}
         skills_data[row[2]]["series"] = pd.Series([0] * num, index=index)
 
     print(f"> Extracting skills from ads data")
@@ -58,10 +58,17 @@ def extract_skills(ads):
                 date = ad["date"].split("T")[0].split(" ")[0]
                 for row in whitelist:
                     skill = row[0]
+                
                     p = re.compile('[-_\\s^]' + re.escape(skill) + '[\\s$-_]')
                     if bool(p.search(ad["doc_text"].lower())):
                         skills_data[row[2]]["series"][date] += 1
                         skills_data[row[2]]["adIds"].append(adId)
+
+                        if ad["employer"] in skills_data[row[2]]["employers"]:
+                            skills_data[row[2]]["employers"][ad["employer"]] += 1
+                        else:
+                            skills_data[row[2]]["employers"][ad["employer"]] = 1
+
 
         save_skills_data_to_json(skills_data)
     except Exception as err:
