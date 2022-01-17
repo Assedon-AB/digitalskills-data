@@ -2,6 +2,7 @@ from extract_ad_info import extract_ad_info
 from extract_skills import extract_skills
 from enrich_ads import enrich_ads
 from relationship_builder import create_relationships
+from prediction_builder import create_predictions 
 
 def main():
     # Filtrera annonser.
@@ -17,10 +18,13 @@ def main():
 
     # Skapa relationer mellan kompetenser, yrke och mjukvärden.
     skills_data, jobs_data = create_relationships(skills_data, enriched_data)
-    print(skills_data)
-    print(jobs_data)
 
     # Skapa en prognos av yrken och kompetenser -> skills-prediction.py
+    for skill in skills_data.keys():
+        skills_pred_data = create_predictions(skills_data[skill]["series"])
+        skills_data[skill]["pred"] = skills_pred_data
+
+    print(skills_data)
     # Spara ner slutresultatet i en databas.
         # Fil som använder sig av POST routes i API
     pass

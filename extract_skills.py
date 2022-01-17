@@ -8,7 +8,7 @@ from spinner import Spinner
 
 def get_ads_data():
     """ Gets ads data """
-    years = ["2008"] # ["2006","2007", "2008", "2009","2010","2011","2012","2013","2014","2015","2016","2017","2018","2019","2020","2021"]
+    years = ["2020", "2021"] # ["2006","2007", "2008", "2009","2010","2011","2012","2013","2014","2015","2016","2017","2018","2019","2020","2021"]
     ads = []
     for year in years:
         ad = json.load(open(f"./ads/{year}.json", "r"))
@@ -64,10 +64,11 @@ def extract_skills(ads):
                         skills_data[row[2]]["series"][date] += 1
                         skills_data[row[2]]["adIds"].append(adId)
 
-                        if ad["employer"] in skills_data[row[2]]["employers"]:
-                            skills_data[row[2]]["employers"][ad["employer"]] += 1
-                        else:
-                            skills_data[row[2]]["employers"][ad["employer"]] = 1
+                        if "employer" in ad:
+                            if ad["employer"] in skills_data[row[2]]["employers"]:
+                                skills_data[row[2]]["employers"][ad["employer"]] += 1
+                            else:
+                                skills_data[row[2]]["employers"][ad["employer"]] = 1
 
 
         save_skills_data_to_json(skills_data)

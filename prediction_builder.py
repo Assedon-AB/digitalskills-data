@@ -223,9 +223,7 @@ def create_predictions(skill_time_series):
 
 
 if __name__ == "__main__":
-    dataset = json.load(open("./skills_data.json"))
+    dataset = json.load(open("./data/skills_data.json"))
     input_data = pd.read_json(dataset["javascript"]["series"], typ="series")
-    print(input_data.sum())
-    print(input_data.describe())
 
-    #create_predictions(input_data)
+    create_predictions(input_data)

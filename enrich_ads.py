@@ -122,6 +122,6 @@ def enrich_ads(documents_input):
         return occupations
 
 if __name__ == "__main__":
-    with open("ads/2008.json", "r") as fd:
+    with open("ads/2020.json", "r") as fd:
         documents_input = json.load(fd)
         enrich_ads(documents_input)
