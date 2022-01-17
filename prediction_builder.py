@@ -14,6 +14,10 @@ import matplotlib.pyplot as plt
 import datetime as dt
 import statsmodels.api as sm
 from scipy.stats import normaltest
+import warnings
+warnings.filterwarnings("ignore")
+import logging
+logging.disable(logging.CRITICAL)
 
 def eval_backtest(model, series, bt_start):
     bt_t_start = time.perf_counter()
@@ -110,6 +114,7 @@ def create_predictions(skill_time_series):
         else: date_counter += 1
     print(date_keys[date_counter])
     skill_data = skill_data[date_counter:-1] #remove all leading zero-values aswell as last value (which gets a weird value due to monthly resample and not having all days for that month)
+    print(skill_data)
     last_data = skill_data[-1]
     month_trend_data = skill_data[-2]
     if len(skill_data) > 12:
@@ -186,7 +191,10 @@ def create_predictions(skill_time_series):
         resid = pred - act
         sr = resid.pd_series()
         final_forecast['eval_ljung_box'] = sm.stats.acorr_ljungbox(sr, lags=[5], return_df = False)[1][0]
-        final_forecast['eval_normaltest'] = normaltest(sr)[1]
+        try:
+            final_forecast['eval_normaltest'] = normaltest(sr)[1]
+        except:
+            final_forecast['eval_normaltest'] = None
   
    
     script_res_time = time.perf_counter() - t_start_script
@@ -194,9 +202,12 @@ def create_predictions(skill_time_series):
     print(f"> Eval script took " + str(script_res_time) + " sec")
 
     #backtesting
-    res_backtest = eval_backtest(models[0], skill_series, BT_START)
-    
-    final_forecast['backtest'] = res_backtest
+    try:
+        res_backtest = eval_backtest(models[0], skill_series, BT_START)
+        
+        final_forecast['backtest'] = res_backtest
+    except:
+        final_forecast['backtest'] = None
    
     trend = check_trend(skill_series, last_data, month_trend_data, yearly_trend_data)
     forecast = check_forecast(skill_series, models[0])
@@ -212,7 +223,9 @@ def create_predictions(skill_time_series):
 
 
 if __name__ == "__main__":
-    dataset = json.load(open("./data/skills_data.json"))
-    input_data = pd.read_json(dataset["react"]["series"], typ="series")
+    dataset = json.load(open("./skills_data.json"))
+    input_data = pd.read_json(dataset["javascript"]["series"], typ="series")
+    print(input_data.sum())
+    print(input_data.describe())
 
-    create_predictions(input_data)
+    #create_predictions(input_data)

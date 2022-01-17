@@ -2,4 +2,5 @@ ads/
 enriched/
 data/
 __pychache___/
-
+skills_data.json
+skills.json
