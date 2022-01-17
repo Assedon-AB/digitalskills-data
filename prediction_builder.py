@@ -9,6 +9,7 @@ from darts.metrics import mape
 from darts.utils.statistics import check_seasonality
 import numbers
 import math
+import json
 import matplotlib.pyplot as plt
 import datetime as dt
 import statsmodels.api as sm
@@ -52,7 +53,6 @@ def eval_model(model, train, val):
     print("> Completed: " + str(model) + ": " + str(res_time) + "sec")
     return results
 
-#TODO: Add function to check trend/growth
 def check_trend(series, ld, mld, yld):
     trend_obj = {}
     trend_obj['month_trend'] = ld/mld
@@ -212,9 +212,7 @@ def create_predictions(skill_time_series):
 
 
 if __name__ == "__main__":
-    
-    #TEST TODO: Remove   
-    dataset = "/Users/andreassamuelsson/Projects/Jobtechdev/UKA-Sandbox/time series/javascript_time_series.json"
-    input_data = pd.read_json(dataset, typ="series")
+    dataset = json.load(open("./data/skills_data.json"))
+    input_data = pd.read_json(dataset["react"]["series"], typ="series")
 
     create_predictions(input_data)
