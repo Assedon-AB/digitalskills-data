@@ -21,10 +21,13 @@ def main():
 
     # Skapa en prognos av yrken och kompetenser -> skills-prediction.py
     for skill in skills_data.keys():
-        skills_pred_data = create_predictions(skills_data[skill]["series"])
-        skills_data[skill]["pred"] = skills_pred_data
+        try:
+            skills_pred_data = create_predictions(skills_data[skill]["series"])
+            skills_data[skill]["pred"] = skills_pred_data
+        except Exception as err:
+            print(err)
 
-    print(skills_data)
+
     # Spara ner slutresultatet i en databas.
         # Fil som använder sig av POST routes i API
     pass
