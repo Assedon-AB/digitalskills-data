@@ -59,7 +59,7 @@ if __name__ == "__main__":
         skills_data = json.load(fd)
 
     jobs_data = {}
-    with open("enriched/2020-enriched-jobs.json", "r") as fd:
+    with open("enriched/enriched-jobs.json", "r") as fd:
         jobs_data = json.load(fd)
 
     create_relationships(skills_data, jobs_data)

@@ -4,3 +4,6 @@ data/
 __pychache___/
 skills_data.json
 skills.json
+predictions/
+.DS_STORE
+

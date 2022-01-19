@@ -4,12 +4,21 @@ import pandas as pd
 import numpy as np
 from spinner import Spinner
 
+def get_ads_data():
+    """ Gets ads data """
+    years = ["2006","2007", "2008", "2009","2010","2011","2012","2013","2014","2015","2016","2017","2018","2019","2020","2021"]
+    ads = []
+    for year in years:
+        ad = json.load(open(f"./ads/{year}.json", "r"))
+        ads.extend(ad)
+    return ads
+
 def save_data_to_json(enriched_data):
     data_json = enriched_data.copy()
     for key in enriched_data.keys():
         data_json[key]["series"] = enriched_data[key]["series"].to_json(indent=4)
 
-    with open(f"enriched/2020-enriched-jobs.json", "w", encoding="utf-8") as fd:
+    with open(f"enriched/enriched-jobs.json", "w", encoding="utf-8") as fd:
         json.dump(data_json, fd, ensure_ascii=False, indent=4)
 
 def enrich_ads(documents_input):
@@ -122,6 +131,5 @@ def enrich_ads(documents_input):
         return occupations
 
 if __name__ == "__main__":
-    with open("ads/2020.json", "r") as fd:
-        documents_input = json.load(fd)
-        enrich_ads(documents_input)
+    documents_input = get_ads_data()
+    enrich_ads(documents_input)
