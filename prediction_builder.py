@@ -224,7 +224,7 @@ def create_predictions(skill_time_series):
 
 if __name__ == "__main__":
     dataset = json.load(open("./enriched/enriched-jobs.json"))
-    for occupation in dataset.keys():
-        input_data = pd.read_json(dataset[occupation]["series"], typ="series")
-        pred = create_predictions(input_data)
-        dataset[occupation]["prediction"] = pred
+    #for occupation in dataset.keys():
+    input_data = pd.read_json(dataset["frontendutvecklare"]["series"], typ="series")
+    pred = create_predictions(input_data)
+    ##dataset[occupation]["prediction"] = pred
