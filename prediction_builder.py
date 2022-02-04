@@ -104,7 +104,7 @@ def check_forecast(series, model, last_measured_data):
         horizon_key = "month_"+str(horizon)
         prediction_series[horizon_key] = {'labels': labels_clean, 'values': data_clean}
         prediction_values[horizon_key] = data_clean[-1]
-        prediction_percentages[horizon_key] = ((data_clean[-1]/last_measured_data)*100)-100
+        prediction_percentages[horizon_key] = (((data_clean[-1]/last_measured_data)*100)-100).item()
         
         
 
@@ -125,6 +125,7 @@ def create_predictions(skill_time_series):
     #FORECAST_HORIZON = 6  not used    #how many months to forecast
     ## load data
     skill_data = skill_time_series.resample('M').sum()
+    print(skill_data)
 
     #find first month where skill is demanded
     date_keys = skill_data.keys()
@@ -270,8 +271,11 @@ def create_predictions(skill_time_series):
 
 
 if __name__ == "__main__":
-    dataset = json.load(open("./enriched/enriched-jobs.json"))
+    dataset = json.load(open("./data/skills_data.json"))
     #for occupation in dataset.keys():
-    input_data = pd.read_json(dataset["frontendutvecklare"]["series"], typ="series")
+    input_data = pd.read_json(dataset["go"]["series"], typ="series")
     pred = create_predictions(input_data)
-    ##dataset[occupation]["prediction"] = pred
+    print(pred.values())
+    pred['eval_forecast'] = pred['eval_forecast'].to_json()
+    with open("data/skills_predicted.json", "w", encoding="utf-8") as fd:
+        json.dump(pred, fd, ensure_ascii=False, indent=4)

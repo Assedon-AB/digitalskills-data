@@ -8,7 +8,7 @@ from spinner import Spinner
 
 def get_ads_data():
     """ Gets ads data """
-    years = ["2009","2010","2011","2012","2013","2014","2015","2016","2017","2018","2019","2020","2021"]
+    years = ["2020", "2021"]#["2014","2015","2016","2017","2018","2019","2020","2021"] #["2009","2010","2011","2012","2013","2014","2015","2016","2017","2018","2019","2020","2021"]
     ads = []
     for year in years:
         ad = json.load(open(f"./ads/{year}.json", "r"))
@@ -57,7 +57,7 @@ def extract_skills(ads):
                 date = ad["date"].split("T")[0].split(" ")[0]
                 for row in whitelist:
                     skill_regex = row[0]
-                
+
                     p = re.compile(skill_regex)
                     if bool(p.search(ad["doc_text"].lower())):
                         skills_data[row[1]]["series"][date] += 1
