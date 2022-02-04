@@ -22,7 +22,7 @@ logging.disable(logging.CRITICAL)
 def eval_backtest(model, series, bt_start):
     bt_t_start = time.perf_counter()
     print("> Starting backtests...")
-    horizons = [3,6,12,24,36]
+    horizons = [3,6,12]
     backtests = []
 
     res_backtest = {}
@@ -57,36 +57,62 @@ def eval_model(model, train, val):
     print("> Completed: " + str(model) + ": " + str(res_time) + "sec")
     return results
 
-def check_trend(series, ld, mld, yld):
+def check_trend(series, ld, mld, qld, hyld, yld):
     trend_obj = {}
-    trend_obj['month_trend'] = ld/mld
-    if yld is not None:
-        trend_obj['year_trend'] = ld/yld
+    #trend_obj['month_trend'] = ld/mld
+    if qld is not None:
+        trend_obj['month_3'] = ((ld/qld)*100)-100
     else: 
-         trend_obj['year_trend'] = None
+         trend_obj['month_3'] = None
+    if hyld is not None:
+        trend_obj['month_6'] = ((ld/hyld)*100)-100
+    else: 
+         trend_obj['month_6'] = None
+    if yld is not None:
+        trend_obj['month_12'] = ((ld/yld)*100)-100
+    else: 
+         trend_obj['month_12'] = None
     return trend_obj
 
 #TODO: Add function to check forecast
-def check_forecast(series, model):
+def check_forecast(series, model, last_measured_data):
     t_start = time.perf_counter()
     print("> Starting evaluation of model {}...".format(model))
     
     #fit model and compute forecast
     model.fit(series)
-    horizons = [3,6,12,24]
-    forecasts =[]
+    horizons = [3,6,12]
+    forecasts = {}
+    prediction_series = {}
+    prediction_percentages = {}
+    prediction_values = {}
     for horizon in horizons:
 
         forecast = model.predict(horizon)
-        forecasts.append(forecast)
+        
+        forecast_json = json.loads(forecast.to_json())
+        labels_raw = forecast_json['index']
+        data_raw = forecast_json['data']
+        labels_clean = []
+        data_clean = []
+        for label in labels_raw:
+            label_clean = label.split('T')[0]
+            labels_clean.append(label_clean)
+        for d in data_raw:
+            data_clean.append(round(d[0]))
+      
+        horizon_key = "month_"+str(horizon)
+        prediction_series[horizon_key] = {'labels': labels_clean, 'values': data_clean}
+        prediction_values[horizon_key] = data_clean[-1]
+        prediction_percentages[horizon_key] = ((data_clean[-1]/last_measured_data)*100)-100
+        
+        
 
-    #compute accuracy and processing time
-
-    res_time = time.perf_counter() - t_start
-    res_accuracy = {"time": res_time}
-    results = [forecasts, res_accuracy]
-    print("> Completed: " + str(model) + ": " + str(res_time) + "sec")
-    return results
+    forecasts['prediction_series'] = prediction_series
+    forecasts['prediction_values'] = prediction_values
+    forecasts['prediction_percentages'] = prediction_percentages
+    print("> Completed: " + str(model))
+    return forecasts
 
 def create_predictions(skill_time_series):
     final_forecast = {}
@@ -95,8 +121,8 @@ def create_predictions(skill_time_series):
     MSEAS = 12                   # seasonality periodicity default
     ALPHA = 0.05                  # significance level default
     BT_START = 0.3             #from where to start backtesting
-    BT_HORIZON = 36             #how many months ahead to forecast in backtest
-    FORECAST_HORIZON = 6        #how many months to forecast
+    #BT_HORIZON = 36 not used             #how many months ahead to forecast in backtest
+    #FORECAST_HORIZON = 6  not used    #how many months to forecast
     ## load data
     skill_data = skill_time_series.resample('M').sum()
 
@@ -107,8 +133,8 @@ def create_predictions(skill_time_series):
         date_interval_keys = date_keys[date_counter:date_counter+13]
         
         count_sum = 0
-        for dik in date_interval_keys:
-            count_sum+= skill_data[dik]
+        for intervalKey in date_interval_keys:
+            count_sum+= skill_data[intervalKey]
         if count_sum > 10:
             break
         else: date_counter += 1
@@ -116,11 +142,17 @@ def create_predictions(skill_time_series):
     skill_data = skill_data[date_counter:-1] #remove all leading zero-values aswell as last value (which gets a weird value due to monthly resample and not having all days for that month)
     print(skill_data)
     last_data = skill_data[-1]
-    month_trend_data = skill_data[-2]
+    month_trend_data = skill_data[-2] #TODO: remove later if we choose to not use monthly
+    if len(skill_data) > 3:
+        quarterly_trend_data = skill_data[-4]
+    else: quarterly_trend_data = None
+    if len(skill_data) > 6:
+        half_year_trend_data = skill_data[-7]
+    else: half_year_trend_data = None
     if len(skill_data) > 12:
         yearly_trend_data = skill_data[-13]
     else: yearly_trend_data = None
-    print(last_data, month_trend_data, yearly_trend_data)
+    print(last_data, month_trend_data, quarterly_trend_data, half_year_trend_data, yearly_trend_data)
     cut_off_index = round(len(skill_data)*0.2)  #80/20 rule for train/test
     cut_off_date = skill_data.keys()[len(skill_data)-cut_off_index] #get date where to split between train and test based on cut_off_index
 
@@ -209,12 +241,27 @@ def create_predictions(skill_time_series):
     except:
         final_forecast['backtest'] = None
    
-    trend = check_trend(skill_series, last_data, month_trend_data, yearly_trend_data)
-    forecast = check_forecast(skill_series, models[0])
-    final_forecast['trend'] = trend
-    final_forecast['forecast'] = forecast
-    print(forecast)
-    print(trend)
+    trend = check_trend(skill_series, last_data, month_trend_data, quarterly_trend_data, half_year_trend_data, yearly_trend_data)
+    forecast = check_forecast(skill_series, models[0], last_data)
+    final_forecast['trend_percentages'] = trend
+    final_forecast['trend'] = {'month_3': quarterly_trend_data,'month_6': half_year_trend_data,'month_12': yearly_trend_data}
+    final_forecast['prediction_series'] = forecast['prediction_series']
+    final_forecast['prediction_values'] = forecast['prediction_values']
+    final_forecast['prediction_percentages'] = forecast['prediction_percentages']
+    final_forecast['series'] = skill_series
+    skills_series_json = json.loads(skill_series.to_json())
+    skill_labels_raw = skills_series_json['index']
+    skill_data_raw = skills_series_json['data']
+    skill_labels_clean = []
+    skill_data_clean = []
+    for label in skill_labels_raw:
+        label_clean = label.split('T')[0]
+        skill_labels_clean.append(label_clean)
+    for d in skill_data_raw:
+        skill_data_clean.append(round(d[0]))
+    
+  
+    final_forecast['series'] = {'labels': skill_labels_clean, 'values': skill_data_clean}
     return final_forecast
  
  
