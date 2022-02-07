@@ -1,7 +1,7 @@
 import csv
 import re
 """ Reads in whitelist """
-file = open("./whitelist.csv")
+file = open("./old_whitelist.csv")
 csvreader = csv.reader(file)
 header = next(csvreader)
 rows = []
@@ -22,7 +22,7 @@ for row in rows:
 new_rows = []
 for skill in skills.keys():
     new_rows.append([
-        f'[\\s_-]({re.escape("|".join(skills[skill]["words"]))})[\\.\\s_-]',
+        f'[\\s_-]({"|".join(skills[skill]["words"])})[\\.\\s_-]',
         skill,
         skills[skill]["subgroup"],
         skills[skill]["maingroup"]
