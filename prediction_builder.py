@@ -31,13 +31,13 @@ def eval_backtest(model, series, bt_start):
         if len(series) - (len(series)*bt_start) > horizon:
             temp_backtest = model.historical_forecasts(series, start=bt_start, forecast_horizon = horizon)
             err = mape(temp_backtest, series)
-            res_backtest[str(horizon)] = {'mape': err, 'backtest': temp_backtest} 
+            res_backtest[str(horizon)] = {'mape': float(err), 'backtest': temp_backtest} 
         else:
             res_backtest[str(horizon)] = None 
 
     bt_res_time = time.perf_counter() - bt_t_start
     print(f"> Backtest script took " + str(bt_res_time) + " sec")
-    res_backtest['time'] = bt_res_time
+    res_backtest['time'] = float(bt_res_time)
     return res_backtest
 
 def eval_model(model, train, val):
@@ -52,7 +52,7 @@ def eval_model(model, train, val):
     #compute accuracy and processing time
     res_mape = mape(val,forecast)
     res_time = time.perf_counter() - t_start
-    res_accuracy = {"MAPE": res_mape, "time": res_time}
+    res_accuracy = {"MAPE": float(res_mape), "time": float(res_time)}
     results = [forecast, res_accuracy]
     print("> Completed: " + str(model) + ": " + str(res_time) + "sec")
     return results
@@ -104,7 +104,7 @@ def check_forecast(series, model, last_measured_data):
         horizon_key = "month_"+str(horizon)
         prediction_series[horizon_key] = {'labels': labels_clean, 'values': data_clean}
         prediction_values[horizon_key] = data_clean[-1]
-        prediction_percentages[horizon_key] = (((data_clean[-1]/last_measured_data)*100)-100).item()
+        prediction_percentages[horizon_key] = float((((data_clean[-1]/last_measured_data)*100)-100).item())
         
         
 
@@ -201,8 +201,8 @@ def create_predictions(skill_time_series):
     #call eval_model for each of the models  
     model_predictions  = eval_model(m_expon, train, val)
     final_forecast['eval_forecast'] = model_predictions[0]
-    final_forecast['eval_mape'] = model_predictions[1]['MAPE']
-    final_forecast['eval_mape'] = model_predictions[1]['time']
+    final_forecast['eval_mape'] = float(model_predictions[1]['MAPE'])
+    final_forecast['eval_mape'] = float(model_predictions[1]['time'])
 
     # RUN the forecasters and tabulate their prediction accuracy and processing time
     print(f"> Creating table of prediction accuracy and processing time...")
@@ -223,15 +223,15 @@ def create_predictions(skill_time_series):
         pred = model_predictions[0]
         resid = pred - act
         sr = resid.pd_series()
-        final_forecast['eval_ljung_box'] = sm.stats.acorr_ljungbox(sr, lags=[5], return_df = False)[1][0]
+        final_forecast['eval_ljung_box'] = float(sm.stats.acorr_ljungbox(sr, lags=[5], return_df = False)[1][0])
         try:
-            final_forecast['eval_normaltest'] = normaltest(sr)[1]
+            final_forecast['eval_normaltest'] = float(normaltest(sr)[1])
         except:
             final_forecast['eval_normaltest'] = None
   
    
     script_res_time = time.perf_counter() - t_start_script
-    final_forecast['eval_time'] = script_res_time
+    final_forecast['eval_time'] = float(script_res_time)
     print(f"> Eval script took " + str(script_res_time) + " sec")
 
     #backtesting
@@ -245,7 +245,7 @@ def create_predictions(skill_time_series):
     trend = check_trend(skill_series, last_data, month_trend_data, quarterly_trend_data, half_year_trend_data, yearly_trend_data)
     forecast = check_forecast(skill_series, models[0], last_data)
     final_forecast['trend_percentages'] = trend
-    final_forecast['trend'] = {'month_3': quarterly_trend_data,'month_6': half_year_trend_data,'month_12': yearly_trend_data}
+    final_forecast['trend'] = {'month_3': int(quarterly_trend_data),'month_6': int(half_year_trend_data),'month_12': int(yearly_trend_data)}
     final_forecast['prediction_series'] = forecast['prediction_series']
     final_forecast['prediction_values'] = forecast['prediction_values']
     final_forecast['prediction_percentages'] = forecast['prediction_percentages']
@@ -271,9 +271,9 @@ def create_predictions(skill_time_series):
 
 
 if __name__ == "__main__":
-    dataset = json.load(open("./data/skills_data.json"))
+    dataset = json.load(open("./enriched/enriched-jobs.json"))
     #for occupation in dataset.keys():
-    input_data = pd.read_json(dataset["go"]["series"], typ="series")
+    input_data = pd.read_json(dataset["frontendutvecklare"]["series"], typ="series")
     pred = create_predictions(input_data)
     print(pred.values())
     pred['eval_forecast'] = pred['eval_forecast'].to_json()
