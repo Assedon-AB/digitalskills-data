@@ -61,15 +61,15 @@ def check_trend(series, ld, mld, qld, hyld, yld):
     trend_obj = {}
     #trend_obj['month_trend'] = ld/mld
     if qld is not None:
-        trend_obj['month_3'] = ((ld/qld)*100)-100
+        trend_obj['month_3'] = float(((ld/qld)*100)-100)
     else: 
          trend_obj['month_3'] = None
     if hyld is not None:
-        trend_obj['month_6'] = ((ld/hyld)*100)-100
+        trend_obj['month_6'] = float(((ld/hyld)*100)-100)
     else: 
          trend_obj['month_6'] = None
     if yld is not None:
-        trend_obj['month_12'] = ((ld/yld)*100)-100
+        trend_obj['month_12'] = float(((ld/yld)*100)-100)
     else: 
          trend_obj['month_12'] = None
     return trend_obj
@@ -99,7 +99,7 @@ def check_forecast(series, model, last_measured_data):
             label_clean = label.split('T')[0]
             labels_clean.append(label_clean)
         for d in data_raw:
-            data_clean.append(round(d[0]))
+            data_clean.append(int(round(d[0])))
       
         horizon_key = "month_"+str(horizon)
         prediction_series[horizon_key] = {'labels': labels_clean, 'values': data_clean}
@@ -258,7 +258,7 @@ def create_predictions(skill_time_series):
         label_clean = label.split('T')[0]
         skill_labels_clean.append(label_clean)
     for d in skill_data_raw:
-        skill_data_clean.append(round(d[0]))
+        skill_data_clean.append(int(round(d[0])))
     
   
     final_forecast['series'] = {'labels': skill_labels_clean, 'values': skill_data_clean}
