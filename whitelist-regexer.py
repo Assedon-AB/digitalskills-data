@@ -22,7 +22,7 @@ for row in rows:
 new_rows = []
 for skill in skills.keys():
     new_rows.append([
-        f'[\\s_-]({"|".join(skills[skill]["words"])})[\\.\\s_-]',
+        '[\\s_-](' + "|".join(skills[skill]["words"]).replace("_", "\\_").replace("+", "\\+") + ')[\\.\\s_-]',
         skill,
         skills[skill]["subgroup"],
         skills[skill]["maingroup"]
