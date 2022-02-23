@@ -1,6 +1,5 @@
 """ Creates relationship between skills, traits, and jobs. """
 import json
-import operator
 from spinner import Spinner
 
 def create_relationships(skills_data, jobs_data):
@@ -15,9 +14,10 @@ def create_relationships(skills_data, jobs_data):
                     if adId in skills_data[skill]["adIds"]:
                         if job not in jobs:
                             jobs[job] = {
-                                "skills":  {},
-                                "traits": jobs_data[job]["traits"],
-                                "geos": jobs_data[job]["geos"]
+                                **jobs_data[job],
+                                **{
+                                    "skills":  {},
+                                }
                             }
 
                         if skill not in jobs[job]["skills"]:
@@ -25,19 +25,14 @@ def create_relationships(skills_data, jobs_data):
 
                         if skill not in skills:
                             skills[skill] = {
-                                "jobs": {},
-                                "geos": {}
+                                **skills_data[skill],
+                                **{
+                                    "jobs": {},
+                                }
                             }
 
                         if job not in skills[skill]["jobs"]:
                             skills[skill]["jobs"][job] = 1
-
-                        top_10_geos = sorted(jobs_data[job]["geos"].items(), key=operator.itemgetter(1), reverse=True)[:10]
-                        for location in top_10_geos:
-                            if location[0] not in skills[skill]["geos"]:
-                                skills[skill]["geos"][location[0]] = location[1]
-                            else:
-                                skills[skill]["geos"][location[0]] += location[1]
 
                         jobs[job]["skills"][skill] += 1
                         skills[skill]["jobs"][job] += 1

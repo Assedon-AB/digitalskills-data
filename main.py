@@ -1,36 +1,87 @@
+import json
 from extract_ad_info import extract_ad_info
 from extract_skills import extract_skills
 from enrich_ads import enrich_ads
 from relationship_builder import create_relationships
-from prediction_builder import create_predictions 
+from prediction_builder import create_predictions
+from upload_data import upload_data
 
-def main():
+def main(use_enrichment=False):
     # Filtrera annonser.
-    all_ads = extract_ad_info()
+    #all_ads = extract_ad_info()
     ads = []
-    for ad_list in all_ads:
-        ads.extend(ad_list)
+    with open("ads/all_ads.json") as fp:
+        ads = json.load(fp)
+    #for ad_list in all_ads:
+    #    ads.extend(ad_list)
 
-    # Extrahera kompetenser
-    skills_data = extract_skills(ads)
-    # Extrahera yrke och mjukavärden
-    enriched_data = enrich_ads(ads)
+    ## Sparar ner de extraherade och alla adsen tillsammans.
+    #with open("ads/all_ads.json", "w") as fp:
+    #    json.dump(ads, fp)
 
-    # Skapa relationer mellan kompetenser, yrke och mjukvärden.
-    skills_data, jobs_data = create_relationships(skills_data, enriched_data)
+    skills = {}
+    jobs = {}
+    if(not use_enrichment):
+        # Extrahera kompetenser
+        skills = extract_skills(ads)
+        # Extrahera yrke och mjukavärden
+        jobs = enrich_ads(ads)
+    else:
+        skills, jobs = enrich_ads(ads, enrich_skills=True)
 
-    # Skapa en prognos av yrken och kompetenser -> skills-prediction.py
+
+    # Skapa relationer mellan kompetenser, yrke och mjukvärden. ifall enrichment inte användes för skills
+    skills_data = {}
+    jobs_data = {}
+    if (not use_enrichment):
+        skills_data, jobs_data = create_relationships(skills, jobs)
+    else:
+        skills_data = skills
+        jobs_data =  jobs
+
+    final_skills_data = {}
+    final_jobs_data = {}
+    # Skapa en prognos av yrken och kompetenser
     for skill in skills_data.keys():
         try:
+            final_skills_data[skill] = skills_data[skill].copy()
             skills_pred_data = create_predictions(skills_data[skill]["series"])
-            skills_data[skill]["pred"] = skills_pred_data
+            skills_pred_data.pop("eval_forecast")
+            skills_pred_data.pop("backtest")
+            final_skills_data[skill].update(skills_pred_data)
         except Exception as err:
             print(err)
 
+    for occupation in jobs_data.keys():
+        try:
+            final_jobs_data[occupation] = jobs_data[occupation].copy()
+            occupations_pred_data = create_predictions(jobs_data[occupation]["series"])
+            occupations_pred_data.pop("eval_forecast")
+            occupations_pred_data.pop("backtest")
+            final_jobs_data[occupation].update(occupations_pred_data)
+        except Exception as err:
+            print(err)
 
-    # Spara ner slutresultatet i en databas.
-        # Fil som använder sig av POST routes i API
-    pass
+    # Rensar bort den gamla tidsserien ur datan.
+    for key in final_jobs_data.keys():
+        final_jobs_data[key].pop("series")
+        if final_jobs_data[key]["ad_series"] and final_jobs_data[key]["ad_series"]["values"]:
+            final_jobs_data[key]["num"] = final_jobs_data[key]["ad_series"]["values"][len(final_jobs_data[key]["ad_series"]["values"]) - 1]
+
+    for skillKey in final_skills_data.keys():
+        final_skills_data[skillKey].pop("series")
+        if final_skills_data[skillKey]["ad_series"] and final_skills_data[skillKey]["ad_series"]["values"]:
+            final_skills_data[skillKey]["num"] = final_skills_data[skillKey]["ad_series"]["values"][len(final_skills_data[skillKey]["ad_series"]["values"]) - 1]
+
+    with open("data/skills_data_complete.json", "w") as fd:
+        json.dump(final_skills_data, fd)
+
+    with open("data/occupations_data_complete.json", "w") as fd:
+        json.dump(final_jobs_data, fd)
+
+    # Laddar upp data
+    upload_data(final_skills_data)
+    upload_data(final_jobs_data, "yrken")
 
 if __name__ == "__main__":
-    main()
+    main(use_enrichment=True)

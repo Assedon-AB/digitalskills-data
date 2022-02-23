@@ -115,6 +115,7 @@ def check_forecast(series, model, last_measured_data):
     return forecasts
 
 def create_predictions(skill_time_series):
+    skill_time_series = pd.read_json(skill_time_series, typ="series")
     final_forecast = {}
     t_start_script = time.perf_counter()
     print(f"> Creating prediction from time series...")
@@ -262,7 +263,7 @@ def create_predictions(skill_time_series):
         skill_data_clean.append(int(round(d[0])))
     
   
-    final_forecast['series'] = {'labels': skill_labels_clean, 'values': skill_data_clean}
+    final_forecast['ad_series'] = {'labels': skill_labels_clean, 'values': skill_data_clean}
     return final_forecast
  
  
@@ -271,11 +272,10 @@ def create_predictions(skill_time_series):
 
 
 if __name__ == "__main__":
-    dataset = json.load(open("./enriched/enriched-jobs.json"))
+    dataset = json.load(open("./data/skills_data.json"))
     #for occupation in dataset.keys():
-    input_data = pd.read_json(dataset["frontendutvecklare"]["series"], typ="series")
+    input_data = pd.read_json(dataset["go"]["series"], typ="series")
     pred = create_predictions(input_data)
-    print(pred.values())
     pred['eval_forecast'] = pred['eval_forecast'].to_json()
     with open("data/skills_predicted.json", "w", encoding="utf-8") as fd:
         json.dump(pred, fd, ensure_ascii=False, indent=4)
