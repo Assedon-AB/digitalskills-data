@@ -5,30 +5,29 @@ from enrich_ads import enrich_ads
 from relationship_builder import create_relationships
 from prediction_builder import create_predictions
 from upload_data import upload_data
+from get_industry_data import get_industry_data
 
 def main(use_enrichment=False):
     # Filtrera annonser.
-    #all_ads = extract_ad_info()
     ads = []
     with open("ads/all_ads.json") as fp:
         ads = json.load(fp)
-    #for ad_list in all_ads:
-    #    ads.extend(ad_list)
 
-    ## Sparar ner de extraherade och alla adsen tillsammans.
-    #with open("ads/all_ads.json", "w") as fp:
-    #    json.dump(ads, fp)
+    if len(ads) == 0:
+        all_ads = extract_ad_info()
+        for ad_list in all_ads:
+            ads.extend(ad_list)
+
+        with open("ads/all_ads.json", "w") as fp:
+            json.dump(ads, fp)
 
     skills = {}
     jobs = {}
     if(not use_enrichment):
-        # Extrahera kompetenser
         skills = extract_skills(ads)
-        # Extrahera yrke och mjukavärden
         jobs = enrich_ads(ads)
     else:
         skills, jobs = enrich_ads(ads, enrich_skills=True)
-
 
     # Skapa relationer mellan kompetenser, yrke och mjukvärden. ifall enrichment inte användes för skills
     skills_data = {}
@@ -62,6 +61,14 @@ def main(use_enrichment=False):
         except Exception as err:
             print(err)
 
+    industry_data = get_industry_data(ads)
+    industry_data = create_predictions(industry_data["series"])
+    industry_data.pop("series")
+    industry_data.pop("eval_forecast")
+    industry_data.pop("backtest")
+
+    industry_data["num"] = industry_data["ad_series"]["values"][len(industry_data["ad_series"]["values"]) - 1]
+
     # Rensar bort den gamla tidsserien ur datan.
     for key in final_jobs_data.keys():
         final_jobs_data[key].pop("series")
@@ -82,6 +89,7 @@ def main(use_enrichment=False):
     # Laddar upp data
     upload_data(final_skills_data)
     upload_data(final_jobs_data, "yrken")
+    upload_data(industry_data, "bransch")
 
 if __name__ == "__main__":
     main(use_enrichment=True)

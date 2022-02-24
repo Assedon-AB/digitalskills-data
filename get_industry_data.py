@@ -5,19 +5,7 @@ from extract_ad_info import extract_ad_info
 from prediction_builder import create_predictions
 from upload_data import upload_data
 
-def get_industry_data():
-    ads = []
-    with open("ads/all_ads.json") as fp:
-        ads = json.load(fp)
-
-    if len(ads) == 0:
-        all_ads = extract_ad_info()
-        for ad_list in all_ads:
-            ads.extend(ad_list)
-
-        with open("ads/all_ads.json", "w") as fp:
-            json.dump(ads, fp)
-
+def get_industry_data(ads):
     num = 5661 # TODO: Change from hardcoded num -> dynamic value
     complete_date = pd.to_datetime("1st of January, 2006") + pd.to_timedelta(np.arange(num), 'D')
     index = pd.DatetimeIndex(complete_date)
@@ -32,7 +20,20 @@ def get_industry_data():
     return industry_data
 
 if __name__ == "__main__":
-    industry_data = get_industry_data()
+    ads = []
+    with open("ads/all_ads.json") as fp:
+        ads = json.load(fp)
+
+    if len(ads) == 0:
+        all_ads = extract_ad_info()
+        for ad_list in all_ads:
+            ads.extend(ad_list)
+
+        with open("ads/all_ads.json", "w") as fp:
+            json.dump(ads, fp)
+
+
+    industry_data = get_industry_data(ads)
     industry_data = create_predictions(industry_data["series"])
     industry_data.pop("series")
     industry_data.pop("eval_forecast")
