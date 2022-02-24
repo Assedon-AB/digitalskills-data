@@ -39,4 +39,4 @@ if __name__ == "__main__":
     industry_data.pop("backtest")
 
     industry_data["num"] = industry_data["ad_series"]["values"][len(industry_data["ad_series"]["values"]) - 1]
-    upload_data(industry_data, "industry")
+    upload_data(industry_data, "bransch")

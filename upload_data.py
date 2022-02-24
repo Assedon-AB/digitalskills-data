@@ -10,7 +10,7 @@ def upload_data(data, collection="kompetenser" ):
 
     API_KEY = os.environ.get("API_KEY")
 
-    if(collection == "industry"):
+    if(collection == "bransch"):
         body = data
         r = requests.post(API_URL+collection, json.dumps(body), headers={
                 "x-api-key": API_KEY,
