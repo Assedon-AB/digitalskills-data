@@ -101,7 +101,8 @@ def main(use_enrichment=False):
     upload_data(final_jobs_data, "yrken")
     upload_data(industry_data, "bransch")
 
-    #populate_ids()
+    # Lägger till idn till kompetenser och yrken under relaterade komptenser samt yrken.
+    populate_ids()
 
 if __name__ == "__main__":
     main(use_enrichment=True)
