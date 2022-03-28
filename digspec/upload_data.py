@@ -8,16 +8,21 @@ def upload_data(data, collection="kompetenser" ):
     if not API_URL:
         API_URL = "http://localhost:8080/api/v1/"
 
+    ORIGIN = os.environ.get("ORIGIN")
+    if not API_URL:
+        API_URL = "http://localhost:3000"
+
     API_KEY = os.environ.get("API_KEY")
+
+    headers = {
+        "x-api-key": API_KEY,
+        "Origin": ORIGIN,
+        "Content-Type": "application/json"
+    }
 
     if(collection == "bransch"):
         body = data
-        r = requests.post(API_URL+collection, json.dumps(body), headers={
-                "x-api-key": API_KEY,
-                "Origin": "http://localhost:3000",
-                "Content-Type": "application/json"
-                }
-            )
+        r = requests.post(API_URL+collection, json.dumps(body), headers=headers})
         print(r.status_code)
     else:
         for d in data:
@@ -25,12 +30,7 @@ def upload_data(data, collection="kompetenser" ):
                 body = data[d]
                 body["name"] = d
 
-                r = requests.post(API_URL+collection, json.dumps(body), headers={
-                        "x-api-key": API_KEY,
-                        "Origin": "http://localhost:3000",
-                        "Content-Type": "application/json"
-                        }
-                    )
+                r = requests.post(API_URL+collection, json.dumps(body), headers=headers)
                 print(r.status_code)
 
 if __name__ == "__main__":
