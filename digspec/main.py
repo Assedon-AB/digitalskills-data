@@ -85,8 +85,8 @@ def main(use_enrichment=False):
     for skillKey in final_skills_data.keys():
         final_skills_data[skillKey].pop("series")
         try:
-            if "ad_series" in final_skills_data[key] and final_skills_data[skillKey]["ad_series"] and final_skills_data[key]["ad_series"]["values"]:
-                final_skills_data[skillKey]["num"] = skill["ad_series"]["values"][len(skill["ad_series"]["values"]) - 1]
+            if "ad_series" in final_skills_data[key] and final_skills_data[skillKey]["ad_series"] and final_skills_data[key]["ad_series"]["values"]:
+                final_skills_data[skillKey]["num"] = final_skills_data[skillKey]["ad_series"]["values"][len(skill["ad_series"]["values"]) - 1]
         except Exception as err:
             print(err)
 

@@ -2,7 +2,7 @@ import json
 import requests
 import pandas as pd
 import numpy as np
-from static_data import MUNICIPALITIES
+from static_data import CITYS, BLACKLIST
 
 PREDICTION_THRESHOLD=0.6
 
@@ -58,160 +58,166 @@ def enrich_ads(documents_input, enrich_skills=False):
                     if(enrich_skills):
                         for skill in ad["enriched_candidates"]["competencies"]:
                             skill_name = skill["concept_label"].lower().strip()
-                            if skill["prediction"] >= PREDICTION_THRESHOLD:
-                                if skill_name not in skills:
-                                    skills[skill_name] = { "series": pd.Series([0] * num, index=skillsIndex), "employers": {}, "adIds": [], "count": 1, "skills": {}, "traits": {}, "geos": {} }
+                            if skill_name not in BLACKLIST:
+                                if skill["prediction"] >= PREDICTION_THRESHOLD:
+                                    if skill_name not in skills:
+                                        skills[skill_name] = { "series": pd.Series([0] * num, index=skillsIndex), "employers": {}, "adIds": [], "count": 1, "skills": {}, "traits": {}, "geos": {} }
+
+                                    adObj = documents_input[:100][idx]
+
+                                    if adObj:
+                                        date = adObj["date"].split("T")[0].split(" ")[0]
+                                        skills[skill_name]["series"][date] += 1
+
+                                        if adObj["employer"] in skills[skill_name]["employers"]:
+                                            skills[skill_name]["employers"][adObj["employer"]] += 1
+                                        else:
+                                            skills[skill_name]["employers"][adObj["employer"]] = 1
+
+
+                                        skills[skill_name]["adIds"].append(adId)
+                                        adId += 1
+
+                                        for s in skills_found:
+                                            if s not in BLACKLIST:
+                                                if s in skills[skill_name]["skills"]:
+                                                    skills[skill_name]["skills"][s] += 1
+                                                else:
+                                                    skills[skill_name]["skills"][s] = 1
+
+                                        skills_found.append(skill_name);
+
+                                        for trait in ad["enriched_candidates"]["traits"]:
+                                            trait_name= trait["concept_label"].lower().strip()
+                                            if trait_name in skills[skill_name]["traits"]:
+                                                skills[skill_name]["traits"][trait_name] += 1
+                                            else:
+                                                skills[skill_name]["traits"][trait_name] = 1
+
+                                        for geo in ad["enriched_candidates"]["geos"]:
+                                            geo_name = geo["concept_label"].lower().strip()
+
+                                            if geo_name in skills[skill_name]["geos"]:
+                                                skills[skill_name]["geos"][geo_name]["num"] += 1;
+                                                if adObj["employer"] in skills[skill_name]["geos"][geo_name]["details"]:
+                                                    skills[skill_name]["geos"][geo_name]["details"][adObj["employer"]] += 1
+                                                else:
+                                                    skills[skill_name]["geos"][geo_name]["organisations_num"] += 1;
+                                                    skills[skill_name]["geos"][geo_name]["details"][adObj["employer"]] = 1
+                                            else:
+                                                if(geo_name in CITYS):
+                                                    skills[skill_name]["geos"][geo_name] = {
+                                                        "num": 1,
+                                                        "organisations_num": 1,
+                                                        "details": {}
+                                                    }
+                                                    if adObj["employer"] in skills[skill_name]["geos"][geo_name]["details"]:
+                                                        skills[skill_name]["geos"][geo_name]["details"][adObj["employer"]] += 1
+                                                    else:
+                                                        skills[skill_name]["geos"][geo_name]["details"][adObj["employer"]] = 1
+                                                        skills[skill_name]["geos"][geo_name]["organisations_num"] += 1;
+
+                    occupations_found = []
+                    for occupation in ad["enriched_candidates"]["occupations"]:
+                        occupation_name = occupation["concept_label"].lower().strip()
+                        if occupation_name not in BLACKLIST:
+                            if occupation["prediction"] >= PREDICTION_THRESHOLD:
+                                if occupation_name not in occupations:
+                                    occupations[occupation_name] = { "series": pd.Series([0] * num, index=index), "employers": {} }
 
                                 adObj = documents_input[:100][idx]
 
                                 if adObj:
                                     date = adObj["date"].split("T")[0].split(" ")[0]
-                                    print(date)
-                                    skills[skill_name]["series"][date] += 1
+                                    occupations[occupation_name]["series"][date] += 1
 
-                                    if adObj["employer"] in skills[skill_name]["employers"]:
-                                        skills[skill_name]["employers"][adObj["employer"]] += 1
+                                    if adObj["employer"] in occupations[occupation_name]["employers"]:
+                                        occupations[occupation_name]["employers"][adObj["employer"]] += 1
                                     else:
-                                        skills[skill_name]["employers"][adObj["employer"]] = 1
+                                        occupations[occupation_name]["employers"][adObj["employer"]] = 1
 
 
-                                    skills[skill_name]["adIds"].append(adId)
+                                    if "adIds" not in occupations[occupation_name]:
+                                        occupations[occupation_name]["adIds"] = [adId]
+                                    else:
+                                        occupations[occupation_name]["adIds"].append(adId)
                                     adId += 1
 
-                                    for s in skills_found:
-                                        if s in skills[skill_name]["skills"]:
-                                            skills[skill_name]["skills"][s] += 1
-                                        else:
-                                            skills[skill_name]["skills"][s] = 1
+                                    if "count" in occupations[occupation_name]:
+                                        occupations[occupation_name]["count"] += 1
+                                    else:
+                                        occupations[occupation_name]["count"] = 1
 
-                                    skills_found.append(skill_name);
+                                    for occ in occupations_found:
+                                        if occ not in BLACKLIST:
+                                            if "jobs" not in occupations[occupation_name]:
+                                                occupations[occupation_name]["jobs"] = {}
+
+                                            if occ in occupations[occupation_name]["jobs"]:
+                                                occupations[occupation_name]["jobs"][occ] += 1
+                                            else:
+                                                occupations[occupation_name]["jobs"][occ] = 1
+
+                                    for s in skills_found:
+                                        if s not in BLACKLIST:
+                                            if "skills" not in occupations[occupation_name]:
+                                                occupations[occupation_name]["skills"] = {}
+
+                                            if s in occupations[occupation_name]["skills"]:
+                                                occupations[occupation_name]["skills"][s] += 1
+                                            else:
+                                                occupations[occupation_name]["skills"][s] = 1
+
+
+                                    occupations_found.append(occupation_name);
 
                                     for trait in ad["enriched_candidates"]["traits"]:
                                         trait_name= trait["concept_label"].lower().strip()
-                                        if trait_name in skills[skill_name]["traits"]:
-                                            skills[skill_name]["traits"][trait_name] += 1
+                                        if "traits" not in occupations[occupation_name]:
+                                            occupations[occupation_name]["traits"] = {}
+
+                                        if trait_name in occupations[occupation_name]["traits"]:
+                                            occupations[occupation_name]["traits"][trait_name] += 1
                                         else:
-                                            skills[skill_name]["traits"][trait_name] = 1
+                                            occupations[occupation_name]["traits"][trait_name] = 1
 
                                     for geo in ad["enriched_candidates"]["geos"]:
                                         geo_name = geo["concept_label"].lower().strip()
+                                        if "geos" not in occupations[occupation_name]:
+                                            occupations[occupation_name]["geos"] = {}
 
-                                        if geo_name in skills[skill_name]["geos"]:
-                                            skills[skill_name]["geos"][geo_name]["num"] += 1;
-                                            if adObj["employer"] in skills[skill_name]["geos"][geo_name]["details"]:
-                                                skills[skill_name]["geos"][geo_name]["details"][adObj["employer"]] += 1
-                                            else:
-                                                skills[skill_name]["geos"][geo_name]["organisations_num"] += 1;
-                                                skills[skill_name]["geos"][geo_name]["details"][adObj["employer"]] = 1
-                                        else:
-                                            if(geo_name in MUNICIPALITIES):
-                                                skills[skill_name]["geos"][geo_name] = {
-                                                    "num": 1,
-                                                    "organisations_num": 1,
-                                                    "details": {}
-                                                }
-                                                if adObj["employer"] in skills[skill_name]["geos"][geo_name]["details"]:
-                                                    skills[skill_name]["geos"][geo_name]["details"][adObj["employer"]] += 1
-                                                else:
-                                                    skills[skill_name]["geos"][geo_name]["details"][adObj["employer"]] = 1
-                                                    skills[skill_name]["geos"][geo_name]["organisations_num"] += 1;
-
-                    occupations_found = []
-                    for occupation in ad["enriched_candidates"]["occupations"]:
-                        occupation_name = occupation["concept_label"].lower().strip()
-                        if occupation["prediction"] >= PREDICTION_THRESHOLD:
-                            if occupation_name not in occupations:
-                                occupations[occupation_name] = { "series": pd.Series([0] * num, index=index), "employers": {} }
-
-                            adObj = documents_input[:100][idx]
-
-                            if adObj:
-                                date = adObj["date"].split("T")[0].split(" ")[0]
-                                occupations[occupation_name]["series"][date] += 1
-
-                                if adObj["employer"] in occupations[occupation_name]["employers"]:
-                                    occupations[occupation_name]["employers"][adObj["employer"]] += 1
-                                else:
-                                    occupations[occupation_name]["employers"][adObj["employer"]] = 1
-
-
-                                if "adIds" not in occupations[occupation_name]:
-                                    occupations[occupation_name]["adIds"] = [adId]
-                                else:
-                                    occupations[occupation_name]["adIds"].append(adId)
-                                adId += 1
-
-                                if "count" in occupations[occupation_name]:
-                                    occupations[occupation_name]["count"] += 1
-                                else:
-                                    occupations[occupation_name]["count"] = 1
-
-                                for occ in occupations_found:
-                                    if "jobs" not in occupations[occupation_name]:
-                                        occupations[occupation_name]["jobs"] = {}
-
-                                    if occ in occupations[occupation_name]["jobs"]:
-                                        occupations[occupation_name]["jobs"][occ] += 1
-                                    else:
-                                        occupations[occupation_name]["jobs"][occ] = 1
-
-                                for s in skills_found:
-                                    if "skills" not in occupations[occupation_name]:
-                                        occupations[occupation_name]["skills"] = {}
-
-                                    if s in occupations[occupation_name]["skills"]:
-                                        occupations[occupation_name]["skills"][s] += 1
-                                    else:
-                                        occupations[occupation_name]["skills"][s] = 1
-
-
-                                occupations_found.append(occupation_name);
-
-                                for trait in ad["enriched_candidates"]["traits"]:
-                                    trait_name= trait["concept_label"].lower().strip()
-                                    if "traits" not in occupations[occupation_name]:
-                                        occupations[occupation_name]["traits"] = {}
-
-                                    if trait_name in occupations[occupation_name]["traits"]:
-                                        occupations[occupation_name]["traits"][trait_name] += 1
-                                    else:
-                                        occupations[occupation_name]["traits"][trait_name] = 1
-
-                                for geo in ad["enriched_candidates"]["geos"]:
-                                    geo_name = geo["concept_label"].lower().strip()
-                                    if "geos" not in occupations[occupation_name]:
-                                        occupations[occupation_name]["geos"] = {}
-
-                                    if geo_name in occupations[occupation_name]["geos"]:
-                                        occupations[occupation_name]["geos"][geo_name]["num"] += 1;
-                                        if adObj["employer"] in occupations[occupation_name]["geos"][geo_name]["details"]:
-                                            occupations[occupation_name]["geos"][geo_name]["details"][adObj["employer"]] += 1
-                                        else:
-                                            occupations[occupation_name]["geos"][geo_name]["details"][adObj["employer"]] = 1
-                                            occupations[occupation_name]["geos"][geo_name]["organisations_num"] += 1
-                                    else:
-                                        if geo_name in MUNICIPALITIES:
-                                            occupations[occupation_name]["geos"][geo_name] = {
-                                                "num": 1,
-                                                "organisations_num": 0,
-                                                "details": {}
-                                            }
+                                        if geo_name in occupations[occupation_name]["geos"]:
+                                            occupations[occupation_name]["geos"][geo_name]["num"] += 1;
                                             if adObj["employer"] in occupations[occupation_name]["geos"][geo_name]["details"]:
                                                 occupations[occupation_name]["geos"][geo_name]["details"][adObj["employer"]] += 1
                                             else:
                                                 occupations[occupation_name]["geos"][geo_name]["details"][adObj["employer"]] = 1
                                                 occupations[occupation_name]["geos"][geo_name]["organisations_num"] += 1
-
-
-                                for skill_name in skills_found:
-                                    for occ in occupations_found:
-                                        if "jobs" not in skills[skill_name]:
-                                           skills[skill_name]["jobs"] = {}
-
-                                        if occ in skills[skill_name]["jobs"]:
-                                           skills[skill_name]["jobs"][occ] += 1
                                         else:
-                                           skills[skill_name]["jobs"][occ] = 1
+                                            if geo_name in CITYS:
+                                                occupations[occupation_name]["geos"][geo_name] = {
+                                                    "num": 1,
+                                                    "organisations_num": 0,
+                                                    "details": {}
+                                                }
+                                                if adObj["employer"] in occupations[occupation_name]["geos"][geo_name]["details"]:
+                                                    occupations[occupation_name]["geos"][geo_name]["details"][adObj["employer"]] += 1
+                                                else:
+                                                    occupations[occupation_name]["geos"][geo_name]["details"][adObj["employer"]] = 1
+                                                    occupations[occupation_name]["geos"][geo_name]["organisations_num"] += 1
+
+
+                                    for skill_name in skills_found:
+                                        if skill_name not in BLACKLIST:
+                                            for occ in occupations_found:
+                                                if "jobs" not in skills[skill_name]:
+                                                   skills[skill_name]["jobs"] = {}
+
+                                                if occ not in BLACKLIST:
+                                                    if occ in skills[skill_name]["jobs"]:
+                                                       skills[skill_name]["jobs"][occ] += 1
+                                                    else:
+                                                       skills[skill_name]["jobs"][occ] = 1
 
                 except Exception as err:
                     print(repr(err), "ENRICHMENT")

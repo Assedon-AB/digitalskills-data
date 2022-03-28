@@ -1,7 +1,7 @@
 ads/
 enriched/
 data/
-__pychache___/
+digspec/__pycache__/
 skills_data.json
 skills.json
 predictions/
