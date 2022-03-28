@@ -48,7 +48,7 @@ def main(use_enrichment=False):
     for skill in skills_data.keys():
         try:
             final_skills_data[skill] = skills_data[skill].copy()
-            skills_pred_data = create_predictions(skills_data[skill]["series"])
+            skills_pred_data = create_predictions(skills_data[skill]["series"], False)
             skills_pred_data.pop("eval_forecast")
             skills_pred_data.pop("backtest")
             final_skills_data[skill].update(skills_pred_data)
@@ -58,7 +58,7 @@ def main(use_enrichment=False):
     for occupation in jobs_data.keys():
         try:
             final_jobs_data[occupation] = jobs_data[occupation].copy()
-            occupations_pred_data = create_predictions(jobs_data[occupation]["series"])
+            occupations_pred_data = create_predictions(jobs_data[occupation]["series"], False)
             occupations_pred_data.pop("eval_forecast")
             occupations_pred_data.pop("backtest")
             final_jobs_data[occupation].update(occupations_pred_data)
