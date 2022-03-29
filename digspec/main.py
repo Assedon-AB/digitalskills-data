@@ -27,11 +27,11 @@ def main(use_enrichment=False):
 
     skills = {}
     jobs = {}
-    if(not use_enrichment):
+    if use_enrichment:
+        skills, jobs = enrich_ads(ads, enrich_skills=True)
+    else:
         skills = extract_skills(ads)
         jobs = enrich_ads(ads)
-    else:
-        skills, jobs = enrich_ads(ads, enrich_skills=True)
 
     # Skapa relationer mellan kompetenser, yrke och mjukvärden. ifall enrichment inte användes för skills
     skills_data = {}
@@ -49,6 +49,8 @@ def main(use_enrichment=False):
         try:
             final_skills_data[skill] = skills_data[skill].copy()
             skills_pred_data = create_predictions(skills_data[skill]["series"], False)
+
+            # Rensar och uppdaterar nuvarande objektet för en skill. Rensar för att göra det redo för json format.
             skills_pred_data.pop("eval_forecast")
             skills_pred_data.pop("backtest")
             final_skills_data[skill].update(skills_pred_data)
@@ -58,6 +60,8 @@ def main(use_enrichment=False):
     for occupation in jobs_data.keys():
         try:
             final_jobs_data[occupation] = jobs_data[occupation].copy()
+
+            # Rensar och uppdaterar nuvarande objektet för ett yrke. Rensar för att göra det redo för json format.
             occupations_pred_data = create_predictions(jobs_data[occupation]["series"], False)
             occupations_pred_data.pop("eval_forecast")
             occupations_pred_data.pop("backtest")
@@ -67,29 +71,33 @@ def main(use_enrichment=False):
 
     industry_data = get_industry_data(ads)
     industry_data = create_predictions(industry_data["series"])
+    # Rensar för att göra det redo för json format.
     industry_data.pop("series")
     industry_data.pop("eval_forecast")
     industry_data.pop("backtest")
 
+    # Skapar en variabel num som står för antalet annonser senast uppmätt.
     industry_data["num"] = industry_data["ad_series"]["values"][len(industry_data["ad_series"]["values"]) - 1]
 
-    # Rensar bort den gamla tidsserien ur datan.
+    # Skapar en variabel num som står för antalet annonser senast uppmätt.
     for key in final_jobs_data.keys():
-        final_jobs_data[key].pop("series")
+        final_jobs_data[key].pop("series") # Rensar bort den gamla tidsserien ur datan.
         try:
             if "ad_series" in final_jobs_data[key] and final_jobs_data[key]["ad_series"] and final_jobs_data[key]["ad_series"]["values"]:
                 final_jobs_data[key]["num"] = final_jobs_data[key]["ad_series"]["values"][len(final_jobs_data[key]["ad_series"]["values"]) - 1]
         except Exception as err:
             print(err)
 
+    # Skapar en variabel num som står för antalet annonser senast uppmätt.
     for skillKey in final_skills_data.keys():
-        final_skills_data[skillKey].pop("series")
+        final_skills_data[skillKey].pop("series") # Rensar bort den gamla tidsserien ur datan.
         try:
             if "ad_series" in final_skills_data[key] and final_skills_data[skillKey]["ad_series"] and final_skills_data[key]["ad_series"]["values"]:
                 final_skills_data[skillKey]["num"] = final_skills_data[skillKey]["ad_series"]["values"][len(skill["ad_series"]["values"]) - 1]
         except Exception as err:
             print(err)
 
+    # Sparar den slutgiltiga datan som en json fil för att snabbt kunna användas i andra lägen.
     with open("data/skills_data_complete.json", "w") as fd:
         json.dump(final_skills_data, fd)
 
