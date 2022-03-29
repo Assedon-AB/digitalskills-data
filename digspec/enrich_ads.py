@@ -1,4 +1,5 @@
 import json
+import os
 import requests
 import pandas as pd
 import numpy as np
@@ -8,7 +9,7 @@ PREDICTION_THRESHOLD=0.6
 
 def get_ads_data():
     """ Gets ads data """
-    years = ["2018"]#["2006","2007", "2008", "2009","2010","2011","2012","2013","2014","2015","2016","2017","2018","2019","2020","2021"]
+    years = ["2006","2007", "2008", "2009","2010","2011","2012","2013","2014","2015","2016","2017","2018","2019","2020","2021"]
     ads = []
     for year in years:
         ad = json.load(open(f"./ads/{year}.json", "r"))
@@ -24,13 +25,17 @@ def save_data_to_json(enriched_data, name="jobs"):
         json.dump(data_json, fd, ensure_ascii=False, indent=4)
 
 def enrich_ads(documents_input, enrich_skills=False):
+    JOBTECH_API_KEY = os.environ.get("JOBTECH_API_KEY")
+    if not JOBTECH_API_KEY:
+        JOBTECH_API_KEY = ""
+
     occupations = {}
     skills = {}
 
     print(f"> Running Enrichment API on ads data")
     try:
         headers = {
-            "api-key": "YidceGExXHhhN1x4YzdceGY1VCtceDA0S1x4MDJ3WWNceDkwXHhlNFx4ZTRceGM1XHhhOFx4MGI5XHhiNic",
+            "api-key": JOBTECH_API_KEY,
             "Content-Type": "application/json",
             "accept": "application/json"
         }
@@ -220,7 +225,6 @@ def enrich_ads(documents_input, enrich_skills=False):
                                                        skills[skill_name]["jobs"][occ] = 1
 
                 except Exception as err:
-                    print(repr(err), "ENRICHMENT")
                     print(err)
 
             documents_input = documents_input[100:]
