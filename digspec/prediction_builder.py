@@ -168,7 +168,7 @@ def create_predictions(skill_time_series, RUN_BACKTESTING=True):
     skill_pd_series = skill_ts.pd_series()
     skill_pd_series.replace(0.0, np.nan, inplace=True)
     skill_pd_series = skill_pd_series.fillna(method="bfill")
-    skill_series = skill_ts.from_series(skill_pd_series)  #Is this really correct? TODO: check if necessary step
+    skill_series = skill_ts.from_series(skill_pd_series)
     #print(f"> Description of time series")
     #print(skill_series.describe())
 
