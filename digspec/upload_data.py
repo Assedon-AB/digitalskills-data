@@ -22,7 +22,7 @@ def upload_data(data, collection="kompetenser" ):
 
     if(collection == "bransch"):
         body = data
-        r = requests.post(API_URL+collection, json.dumps(body), headers=headers})
+        r = requests.post(API_URL+collection, json.dumps(body), headers=headers)
         print(r.status_code)
     else:
         for d in data:
