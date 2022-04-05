@@ -153,4 +153,4 @@ CITYS = [
   "östhammar"
 ]
 
-BLACKLIST = ["svenska", "engelska", "can", "design", "data", "förvaltning", "verktyg", "högskoleutbildning", "eftergymnasial utbildning", "kommunikation", "problemlösning", "tekniker", "general", "manager", "major", "mentor"]
+BLACKLIST = ["svenska", "engelska", "can", "design", "data", "förvaltning", "verktyg", "högskoleutbildning", "eftergymnasial utbildning", "kommunikation", "problemlösning", "tekniker", "general", "manager", "major", "mentor", "programmering", "egen bil", "barn", "back end", "front end", "not", "projektledning", "eftergymnasial utbildning", "miljö", "körkort", "leverantörer", "script", "stack", "Svenskt medborgarskap", "affärssystem", "budget", "sales", "religion", "client", "tekniker", "ingenjör", "personalansvarig", "project manager", "arkitekt", "förvaltare", "traffic", "diskrimineringsombudsman", "arbetslivserfarenhet"]

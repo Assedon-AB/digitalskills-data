@@ -9,7 +9,7 @@ def upload_data(data, collection="kompetenser" ):
         API_URL = "http://localhost:8080/api/v1/"
 
     ORIGIN = os.environ.get("ORIGIN")
-    if not API_URL:
+    if not ORIGIN:
         API_URL = "http://localhost:3000"
 
     API_KEY = os.environ.get("API_KEY")
@@ -24,6 +24,8 @@ def upload_data(data, collection="kompetenser" ):
         body = data
         r = requests.post(API_URL+collection, json.dumps(body), headers=headers)
         print(r.status_code)
+        if r.status_code != 201:
+            print(r.text)
     else:
         for d in data:
             if(d):
@@ -32,10 +34,12 @@ def upload_data(data, collection="kompetenser" ):
 
                 r = requests.post(API_URL+collection, json.dumps(body), headers=headers)
                 print(r.status_code)
+                if r.status_code != 201:
+                    print(r.text)
 
 if __name__ == "__main__":
     data = {}
-    with open("./data/skills_data_complete.json", "r") as fd:
+    with open("./data/occupations_data_complete.json", "r") as fd:
         data = json.load(fd)
 
-    upload_data(data)
+    upload_data(data, collection="yrken")

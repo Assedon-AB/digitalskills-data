@@ -6,7 +6,7 @@ API_URL = os.environ.get("API_URL")
 API_KEY = os.environ.get("API_KEY")
 headers = {
     "x-api-key": API_KEY,
-    "Origin": "http://localhost:3000",
+    "Origin": "digitalskills.se",
     "Content-Type": "application/json"
 }
 
