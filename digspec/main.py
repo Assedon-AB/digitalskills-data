@@ -8,6 +8,8 @@ from upload_data import upload_data
 from get_industry_data import get_industry_data
 from database_id_populator import populate_ids
 
+AD_COUNT_THRESHOLD = 20
+
 def main(use_enrichment=False):
     # Filtrera annonser.
     ads = []
@@ -80,22 +82,48 @@ def main(use_enrichment=False):
     industry_data["num"] = industry_data["ad_series"]["values"][len(industry_data["ad_series"]["values"]) - 1]
 
     # Skapar en variabel num som står för antalet annonser senast uppmätt.
-    for key in final_jobs_data.keys():
+    for key in list(final_jobs_data):
         final_jobs_data[key].pop("series") # Rensar bort den gamla tidsserien ur datan.
         try:
             if "ad_series" in final_jobs_data[key] and final_jobs_data[key]["ad_series"] and final_jobs_data[key]["ad_series"]["values"]:
-                final_jobs_data[key]["num"] = final_jobs_data[key]["ad_series"]["values"][len(final_jobs_data[key]["ad_series"]["values"]) - 1]
-        except Exception as err:
+                series_length = len(final_jobs_data[key]["ad_series"]["values"])
+
+                final_jobs_data[key]["num"] = final_jobs_data[key]["ad_series"]["values"][series_length - 1]
+
+                # Checking if enough data to be passing treshold
+                if series_length < 6:
+                    if sum(final_jobs_data[key]["ad_series"]["values"]) < AD_COUNT_THRESHOLD:
+                        del final_jobs_data[key]
+                else:
+                    if sum(final_jobs_data[key]["ad_series"]["values"][(series_length-6):]) < AD_COUNT_THRESHOLD:
+                        del final_jobs_data[key]
+            else:
+                del final_jobs_data[key]
+except Exception as err:
             print(err)
 
     # Skapar en variabel num som står för antalet annonser senast uppmätt.
-    for skillKey in final_skills_data.keys():
+    for skillKey in list(final_skills_data):
         final_skills_data[skillKey].pop("series") # Rensar bort den gamla tidsserien ur datan.
         try:
-            if "ad_series" in final_skills_data[key] and final_skills_data[skillKey]["ad_series"] and final_skills_data[key]["ad_series"]["values"]:
-                final_skills_data[skillKey]["num"] = final_skills_data[skillKey]["ad_series"]["values"][len(skill["ad_series"]["values"]) - 1]
+            if "ad_series" in final_skills_data[skillKey] and final_skills_data[skillKey]["ad_series"] and final_skills_data[skillKey]["ad_series"]["values"]:
+                series_length = len(final_skills_data[skillKey]["ad_series"]["values"])
+
+                final_skills_data[skillKey]["num"] = final_skills_data[skillKey]["ad_series"]["values"][series_length - 1]
+
+                # Checking if enough data to be passing treshold
+                if series_length < 6:
+                    if sum(final_skills_data[skillKey]["ad_series"]["values"]) < AD_COUNT_THRESHOLD:
+                        del final_skills_data[skillKey]
+                else:
+                    if sum(final_skills_data[skillKey]["ad_series"]["values"][(series_length-6):]) < AD_COUNT_THRESHOLD:
+                        del final_skills_data[skillKey]
+            else:
+                del final_skills_data[skillKey]
+
         except Exception as err:
             print(err)
+
 
     # Sparar den slutgiltiga datan som en json fil för att snabbt kunna användas i andra lägen.
     with open("data/skills_data_complete.json", "w") as fd:

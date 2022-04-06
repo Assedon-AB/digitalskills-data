@@ -39,7 +39,34 @@ def upload_data(data, collection="kompetenser" ):
 
 if __name__ == "__main__":
     data = {}
-    with open("./data/occupations_data_complete.json", "r") as fd:
+    with open("./data/skills_data_complete.json", "r") as fd:
         data = json.load(fd)
 
-    upload_data(data, collection="yrken")
+    print(len(list(data)))
+    keysToRemove = []
+
+    for key in list(data):
+        if "ad_series" in data[key] and data[key]["ad_series"] and data[key]["ad_series"]["values"]:
+            series_length = len(data[key]["ad_series"]["values"])
+
+            data[key]["num"] = data[key]["ad_series"]["values"][series_length - 1]
+
+            # Checking if enough data to be passing treshold
+            if series_length < 6:
+                if sum(data[key]["ad_series"]["values"]) < 20:
+                    keysToRemove.append(key)
+                    del data[key]
+                else:
+                    print("DONT REMOVE: ",sum(data[key]["ad_series"]["values"]))
+            else:
+                if sum(data[key]["ad_series"]["values"][(series_length-5):]) < 20:
+                    keysToRemove.append(key)
+                    del data[key]
+                else:
+                    print("DONT REMOVE: ",sum(data[key]["ad_series"]["values"][(series_length-5):]))
+        else:
+            keysToRemove.append(key)
+            del data[key]
+
+    upload_data(data)
+
