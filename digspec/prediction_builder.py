@@ -19,14 +19,14 @@ warnings.filterwarnings("ignore")
 import logging
 logging.disable(logging.CRITICAL)
 
-def eval_backtest(model, series, bt_start):
-    bt_t_start = time.perf_counter()
+def eval_backtest(model, series, bt_start, horizons):
     print("> Starting backtests...")
-    horizons = [3,6,12,18]
+
+    bt_t_start = time.perf_counter()
     backtests = []
 
-    res_backtest = {}
     print("> Starting backtest evaluation of model {}...".format(model))
+    res_backtest = {}
     for horizon in horizons:
         if len(series) - (len(series)*bt_start) > horizon:
             temp_backtest = model.historical_forecasts(series, start=bt_start, forecast_horizon = horizon)
@@ -36,13 +36,15 @@ def eval_backtest(model, series, bt_start):
             res_backtest[str(horizon)] = None
 
     bt_res_time = time.perf_counter() - bt_t_start
-    print(f"> Backtest script took " + str(bt_res_time) + " sec")
     res_backtest['time'] = float(bt_res_time)
+    print(f"> Backtest script took " + str(bt_res_time) + " sec")
+
     return res_backtest
 
 def eval_model(model, train, val):
-    t_start = time.perf_counter()
     print("> Starting evaluation of model {}...".format(model))
+
+    t_start = time.perf_counter()
 
     #fit model and compute forecast
     model.fit(train)
@@ -54,38 +56,28 @@ def eval_model(model, train, val):
     res_time = time.perf_counter() - t_start
     res_accuracy = {"MAPE": float(res_mape), "time": float(res_time)}
     results = [forecast, res_accuracy]
-    print("> Completed: " + str(model) + ": " + str(res_time) + "sec")
+
     return results
 
-def check_trend(series, ld, qld, hyld, yld, month_18d):
+def check_trend(skill_data, last_measured_data, horizons):
     trend_obj = {}
-    if qld is not None:
-        trend_obj['month_3'] = float(((ld/qld)*100)-100)
-    else:
-         trend_obj['month_3'] = None
-    if hyld is not None:
-        trend_obj['month_6'] = float(((ld/hyld)*100)-100)
-    else:
-         trend_obj['month_6'] = None
-    if yld is not None:
-        trend_obj['month_12'] = float(((ld/yld)*100)-100)
-    else:
-         trend_obj['month_12'] = None
 
-    if month_18d is not None:
-        trend_obj['month_18'] = float(((ld/month_18d)*100)-100)
-    else:
-         trend_obj['month_18'] = None
+    for horizon in horizons:
+        horizon = int(horizon)
+        if len(skill_data) > horizon:
+            trend_start = skill_data[-(horizon+1)]
+            trend_obj[f'month_{horizon}'] = float(((last_measured_data/trend_start)*100)-100)
+        else:
+            trend_obj[f'month_{horizon}'] = None
 
     return trend_obj
 
-def check_forecast(series, model, last_measured_data):
+def check_forecast(series, model, last_measured_data, horizons):
     t_start = time.perf_counter()
     print("> Starting evaluation of model {}...".format(model))
 
     #fit model and compute forecast
     model.fit(series)
-    horizons = [3,6,12,18]
     forecasts = {}
     prediction_series = {}
     prediction_percentages = {}
@@ -105,12 +97,12 @@ def check_forecast(series, model, last_measured_data):
         for d in data_raw:
             data_clean.append(int(round(d[0])))
 
-        horizon_key = "month_"+str(horizon)
+        horizon_key = f"month_{horizon}"
+
         prediction_series[horizon_key] = {'labels': labels_clean, 'values': data_clean}
         prediction_values[horizon_key] = data_clean[-1]
+
         prediction_percentages[horizon_key] = float((((data_clean[-1]/last_measured_data)*100)-100).item())
-
-
 
     forecasts['prediction_series'] = prediction_series
     forecasts['prediction_values'] = prediction_values
@@ -118,15 +110,16 @@ def check_forecast(series, model, last_measured_data):
     print("> Completed: " + str(model))
     return forecasts
 
-def create_predictions(skill_time_series, RUN_BACKTESTING=True):
-    skill_time_series = pd.read_json(skill_time_series, typ="series")
-    final_forecast = {}
-    t_start_script = time.perf_counter()
+def create_predictions(skill_time_series, RUN_BACKTESTING=True, horizons=[3,6,12,18]):
     print(f"> Creating prediction from time series...")
     MSEAS = 12                   # seasonality periodicity default
     ALPHA = 0.05                  # significance level default
     BT_START = 0.3             #from where to start backtesting
+
+    t_start_script = time.perf_counter()
+
     ## load data
+    skill_time_series = pd.read_json(skill_time_series, typ="series")
     skill_data = skill_time_series.resample('M').sum()
 
     #find first month where skill is demanded
@@ -142,21 +135,7 @@ def create_predictions(skill_time_series, RUN_BACKTESTING=True):
         else: date_counter += 1
 
     skill_data = skill_data[date_counter:-1] #remove all leading zero-values aswell as last value (which gets a weird value due to monthly resample and not having all days for that month)
-
     last_data = skill_data[-1]
-    if len(skill_data) > 3:
-        quarterly_trend_data = skill_data[-4]
-    else: quarterly_trend_data = None
-    if len(skill_data) > 6:
-        half_year_trend_data = skill_data[-7]
-    else: half_year_trend_data = None
-    if len(skill_data) > 12:
-        yearly_trend_data = skill_data[-13]
-    else: yearly_trend_data = None
-
-    if len(skill_data) > 18:
-        month_18_trend_data = skill_data[-19]
-    else: month_18_trend_data = None
 
     cut_off_index = round(len(skill_data)*0.2)  #80/20 rule for train/test
     cut_off_date = skill_data.keys()[len(skill_data)-cut_off_index] #get date where to split between train and test based on cut_off_index
@@ -169,8 +148,6 @@ def create_predictions(skill_time_series, RUN_BACKTESTING=True):
     skill_pd_series.replace(0.0, np.nan, inplace=True)
     skill_pd_series = skill_pd_series.fillna(method="bfill")
     skill_series = skill_ts.from_series(skill_pd_series)
-    #print(f"> Description of time series")
-    #print(skill_series.describe())
 
     #check for seasonality
     print(f"> Checking seasonality...")
@@ -200,13 +177,13 @@ def create_predictions(skill_time_series, RUN_BACKTESTING=True):
         m_expon = ExponentialSmoothing()
 
     models = [m_expon]
+    final_forecast = {}
     final_forecast['model'] = str(models[0])
 
     #call eval_model for each of the models
     model_predictions  = eval_model(m_expon, train, val)
     final_forecast['eval_forecast'] = model_predictions[0]
     final_forecast['eval_mape'] = float(model_predictions[1]['MAPE'])
-    final_forecast['eval_mape'] = float(model_predictions[1]['time'])
 
     # RUN the forecasters and tabulate their prediction accuracy and processing time
     #print(f"> Creating table of prediction accuracy and processing time...")
@@ -218,7 +195,6 @@ def create_predictions(skill_time_series, RUN_BACKTESTING=True):
     #    df.columns = [str(m)]
     #    df_acc = pd.concat([df_acc, df], axis=1)
 
-    ##show df_acc table
     #print(df_acc)
 
     act = val
@@ -240,7 +216,7 @@ def create_predictions(skill_time_series, RUN_BACKTESTING=True):
     # Backtesting
     try:
         if RUN_BACKTESTING:
-            res_backtest = eval_backtest(models[0], skill_series, BT_START)
+            res_backtest = eval_backtest(models[0], skill_series, BT_START, horizons)
 
             final_forecast['backtest'] = res_backtest
         else:
@@ -248,17 +224,12 @@ def create_predictions(skill_time_series, RUN_BACKTESTING=True):
     except:
         final_forecast['backtest'] = None
 
-    trend = check_trend(skill_series, last_data, quarterly_trend_data, half_year_trend_data, yearly_trend_data, month_18_trend_data)
-    forecast = check_forecast(skill_series, models[0], last_data)
+    final_forecast['trend_percentages'] = check_trend(skill_data, last_data, horizons)
 
-    final_forecast['trend_percentages'] = trend
-    final_forecast['trend'] = {'month_3': int(quarterly_trend_data),'month_6': int(half_year_trend_data),'month_12': int(yearly_trend_data), 'month_18': int(month_18_trend_data)}
-
+    forecast = check_forecast(skill_series, models[0], last_data, horizons)
     final_forecast['prediction_series'] = forecast['prediction_series']
     final_forecast['prediction_values'] = forecast['prediction_values']
     final_forecast['prediction_percentages'] = forecast['prediction_percentages']
-
-    final_forecast['series'] = skill_series
 
     skills_series_json = json.loads(skill_series.to_json())
 
@@ -282,5 +253,4 @@ def create_predictions(skill_time_series, RUN_BACKTESTING=True):
 if __name__ == "__main__":
     dataset = json.load(open("./data/skills_data.json"))
     input_data = dataset["php"]["series"]
-    pred = create_predictions(input_data, False)
-    print(pred["trend_percentages"])
+    pred = create_predictions(input_data)

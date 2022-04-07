@@ -74,7 +74,6 @@ def main(use_enrichment=False):
     industry_data = get_industry_data(ads)
     industry_data = create_predictions(industry_data["series"])
     # Rensar för att göra det redo för json format.
-    industry_data.pop("series")
     industry_data.pop("eval_forecast")
     industry_data.pop("backtest")
 
@@ -83,7 +82,6 @@ def main(use_enrichment=False):
 
     # Skapar en variabel num som står för antalet annonser senast uppmätt.
     for key in list(final_jobs_data):
-        final_jobs_data[key].pop("series") # Rensar bort den gamla tidsserien ur datan.
         try:
             if "ad_series" in final_jobs_data[key] and final_jobs_data[key]["ad_series"] and final_jobs_data[key]["ad_series"]["values"]:
                 series_length = len(final_jobs_data[key]["ad_series"]["values"])
@@ -104,7 +102,6 @@ except Exception as err:
 
     # Skapar en variabel num som står för antalet annonser senast uppmätt.
     for skillKey in list(final_skills_data):
-        final_skills_data[skillKey].pop("series") # Rensar bort den gamla tidsserien ur datan.
         try:
             if "ad_series" in final_skills_data[skillKey] and final_skills_data[skillKey]["ad_series"] and final_skills_data[skillKey]["ad_series"]["values"]:
                 series_length = len(final_skills_data[skillKey]["ad_series"]["values"])
