@@ -10,6 +10,8 @@ Jobtech Developments algoritm JobAd Enrichments anropas via API och tillämpas p
 3. Framskrivning av data
 Annonserna passerar sedan en funktion som med hjälp av öppna bibliotek i Python applicerar algoritmer för prognostisering av tidsserier. Metoden som tillämpas är exponentiell utjämning där tidsseriens säsongsvariation först utreds för att sedan tas i beaktning i framskrivningen. Framskrivningar för 6, 12 och 18 månader tas fram och sparas ned som tidsserier i resultatobjektet. I samma steg sparas även värden för historiska trender på samma intervall. Detta görs i `prediction_builder.py`
 
+För att ändra vilka månads intervall som framskrivning och trend görs så kan du ange dina egna tidshorizoner som argument till parametern horizons för `create_prediction` funktionen.
+
 4. Rensning av data
 Efter att framskrivningar har gjorts så rensas framtagna data på en viss uppsättning variabler. Rensning beror på att variabler som använts i framskrivningen och tidigare funktioner inte längre fyller någon funktion i databasen
 
