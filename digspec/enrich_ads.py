@@ -4,7 +4,7 @@ import os
 import requests
 import pandas as pd
 import numpy as np
-from static_data import CITYS, BLACKLIST
+from static_data import BLACKLIST, FA_REGION
 import datetime
 
 
@@ -124,7 +124,7 @@ def enrich_ads(documents_input, enrich_skills=False):
                                                     skills[skill_name]["geos"][geo_name][date[:-2]+"01"]["organisations_num"] += 1;
                                                     skills[skill_name]["geos"][geo_name][date[:-2]+"01"]["details"][adObj["employer"]] = 1
                                             else:
-                                                if(geo_name in CITYS):
+                                                if(geo_name in FA_REGION):
                                                     skills[skill_name]["geos"][geo_name] = {}
                                                     for month in months_between(datetime.date(2006, 1, 1), datetime.date(2021, 12, 31)):
                                                         skills[skill_name]["geos"][geo_name][month.strftime("%Y-%m-%d")] = {
@@ -203,7 +203,7 @@ def enrich_ads(documents_input, enrich_skills=False):
                                                 occupations[occupation_name]["geos"][geo_name][date[:-2]+"01"]["details"][adObj["employer"]] = 1
                                                 occupations[occupation_name]["geos"][geo_name][date[:-2]+"01"]["organisations_num"] += 1
                                         else:
-                                            if geo_name in CITYS:
+                                            if geo_name in FA_REGION:
                                                 occupations[occupation_name]["geos"][geo_name] = {}
                                                 for month in months_between(datetime.date(2006, 1, 1), datetime.date(2021, 12, 31)):
                                                     occupations[occupation_name]["geos"][geo_name][month.strftime("%Y-%m-%d")] = {
