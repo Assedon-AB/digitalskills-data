@@ -22,5 +22,8 @@ Framtagen data laddas sen upp i en databas genom ett uppladdningsskript. Här la
 6. Sammankoppling av ID:n
 Efter att alla kompetenser och yrken är uppladdade så tilldelas alla ett automatiskt id. För att kunna möjliggöra länkningen mellan kompetenser och yrken så går varje kompetens och yrke genom en process där deras ID adderas under relaterade kompetenser och yrken. Detta görs i `database_id_populator.py`
 
+## Vill du hjälpa till att förbättra verktyget?
+Digitalskills är open source och ifall du hittar något som verkar fel eller har ett förbättringsförslag så kan du skapa en issue här på Github som förklarar det som kan förbättras.
+
 ## Testning
 I nuläget är det brist på kodtester. Ifall du vill hjälpa till och skapa tester kan du göra detta genom att skapa tester i tests mappen. Testerna är i nuläget skriva med paketet [unittest](https://docs.python.org/3/library/unittest.html). För mer dokumentation gällande [unittest](https://docs.python.org/3/library/unittest.html) se deras [dokumentation](https://docs.python.org/3/library/unittest.html)
