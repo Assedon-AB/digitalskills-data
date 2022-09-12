@@ -32,7 +32,7 @@ def extract_fields(ads_data, it_concept_ids = ["UXKZ_3zZ_ipB", "DJh5_yyF_hEM", "
 
     return documents_input
 
-def extract_ad_info(years=["2006","2007","2008", "2009","2010","2011","2012","2013","2014","2015","2016","2017","2018","2019","2020","2021"]):
+def extract_ad_info(years=["2006","2007","2008", "2009","2010","2011","2012","2013","2014","2015","2016","2017","2018","2019","2020","2021", "2022"]):
     """ Extracts ad information from raw data """
     all_ads_data = get_raw_data(years)
     all_ads_info = []
@@ -50,5 +50,17 @@ def extract_ad_info(years=["2006","2007","2008", "2009","2010","2011","2012","20
 
     return all_ads_info
 
+def merge_into_all_ads(years=["2006","2007","2008", "2009","2010","2011","2012","2013","2014","2015","2016","2017","2018","2019","2020","2021", "2022"]):
+    all_ads = []
+
+    for year in years:
+        with open(f"ads/{year}.json", "r") as fp:
+            data = json.load(fp)
+            all_ads.extend(data)
+
+    with open("ads/all_ads.json", "w") as fp:
+        json.dump(all_ads, fp)
+    
 if __name__ == "__main__":
-    extract_ad_info()
+    #extract_ad_info(years=["2022"])
+    merge_into_all_ads()

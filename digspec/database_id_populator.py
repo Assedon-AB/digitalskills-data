@@ -18,14 +18,18 @@ def populate_ids():
     skill_request = requests.get("http://localhost:8080/api/v1/kompetenser", headers=headers)
     skills = skill_request.json()
 
+    print(skills)
+
     for skill in skills:
-        SKILL_TO_ID[skill["name"].lower()] = skill["_id"]
+        if type(skill) != type("string"):
+            SKILL_TO_ID[skill["name"].lower()] = skill["_id"]
 
     occupation_request = requests.get("http://localhost:8080/api/v1/yrken", headers=headers)
     occupations = occupation_request.json()
 
     for occupation in occupations:
-        OCCUPATION_TO_ID[occupation["name"].lower()] = occupation["_id"]
+        if type(occupation) != type("string"):
+            OCCUPATION_TO_ID[occupation["name"].lower()] = occupation["_id"]
 
     print("> POPULATING SKILL IDS")
     for skill_id in SKILL_TO_ID.values():

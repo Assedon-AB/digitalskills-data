@@ -1,4 +1,5 @@
 import json
+import datetime
 from extract_ad_info import extract_ad_info
 from extract_skills import extract_skills
 from enrich_ads import enrich_ads
@@ -11,6 +12,9 @@ from database_id_populator import populate_ids
 AD_COUNT_THRESHOLD = 20
 
 def main(use_enrichment=False):
+    start_date = datetime.date(2006, 1, 1)
+    max_date = datetime.date(2022, 7, 30)
+
     # Filtrera annonser.
     ads = []
     try:
@@ -30,7 +34,7 @@ def main(use_enrichment=False):
     skills = {}
     jobs = {}
     if use_enrichment:
-        skills, jobs = enrich_ads(ads, enrich_skills=True)
+        skills, jobs = enrich_ads(ads, enrich_skills=True, start_date=start_date, max_date=max_date)
     else:
         skills = extract_skills(ads)
         jobs = enrich_ads(ads)
@@ -71,7 +75,7 @@ def main(use_enrichment=False):
         except Exception as err:
             print(err)
 
-    industry_data = get_industry_data(ads)
+    industry_data = get_industry_data(ads, start_date=start_date, max_date=max_date)
     industry_data = create_predictions(industry_data["series"])
     # Rensar för att göra det redo för json format.
     industry_data.pop("eval_forecast")
@@ -97,7 +101,7 @@ def main(use_enrichment=False):
                         del final_jobs_data[key]
             else:
                 del final_jobs_data[key]
-except Exception as err:
+        except Exception as err:
             print(err)
 
     # Skapar en variabel num som står för antalet annonser senast uppmätt.

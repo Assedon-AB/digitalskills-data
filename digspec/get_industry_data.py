@@ -1,18 +1,23 @@
 import json
 import pandas as pd
 import numpy as np
+import datetime
 from extract_ad_info import extract_ad_info
 from prediction_builder import create_predictions
 from upload_data import upload_data
 
-def get_industry_data(ads):
-    num = 5844 # TODO: Change from hardcoded num -> dynamic value
+def get_industry_data(ads, start_date=datetime.date(2006, 1, 1), max_date=datetime.date(2022, 7, 30)):
+    num = (max_date - start_date).days
     complete_date = pd.to_datetime("1st of January, 2006") + pd.to_timedelta(np.arange(num), 'D')
     index = pd.DatetimeIndex(complete_date)
     industry_data = {"series": pd.Series([0] * num, index=index)}
 
     for ad in ads:
         date = ad["date"].split("T")[0].split(" ")[0] # To make sure date is yyyy-mm-dd
+        year, month, day = date.split("-")
+        days_from_max = (max_date - datetime.date(int(year), int(month), int(day))).days
+        if(days_from_max < 0):
+            continue
         industry_data["series"][date] += 1
 
     industry_data = {"series": industry_data["series"].to_json(indent=4)}

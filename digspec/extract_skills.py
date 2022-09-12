@@ -38,7 +38,7 @@ def extract_skills(ads):
     """ Goes through all skills in whitelist and extracts skill """
     whitelist = get_whitelist()
 
-    num = 5661 # TODO: Change from hardcoded num -> dynamic value
+    num = 6087 # TODO: Change from hardcoded num -> dynamic value
     complete_date = pd.to_datetime("1st of January, 2006") + pd.to_timedelta(np.arange(num), 'D')
     index = pd.DatetimeIndex(complete_date)
 
