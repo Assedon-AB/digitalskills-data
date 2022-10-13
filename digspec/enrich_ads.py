@@ -4,7 +4,7 @@ import os, sys
 import requests
 import pandas as pd
 import numpy as np
-from static_data import BLACKLIST, CITYS, FA_REGION
+from static_data import BLACKLIST, CITYS, MUNICIPALITY_TO_FA
 import datetime
 
 
@@ -121,31 +121,35 @@ def enrich_ads(documents_input, enrich_skills=False, start_date=datetime.date(20
 
                                         for geo in ad["enriched_candidates"]["geos"]:
                                             geo_name = geo["concept_label"].lower().strip()
-
-                                            if geo_name in skills[skill_name]["geos"]["faRegion"]:
-                                                skills[skill_name]["geos"]["faRegion"][geo_name][date[:-2]+"01"]["num"] += 1
-                                                if adObj["employer"] in skills[skill_name]["geos"]["faRegion"][geo_name][date[:-2]+"01"]["details"]:
-                                                    skills[skill_name]["geos"]["faRegion"][geo_name][date[:-2]+"01"]["details"][adObj["employer"]] += 1
-                                                else:
-                                                    skills[skill_name]["geos"]["faRegion"][geo_name][date[:-2]+"01"]["organisations_num"] += 1;
-                                                    skills[skill_name]["geos"]["faRegion"][geo_name][date[:-2]+"01"]["details"][adObj["employer"]] = 1
+                                            fa_geo_name = geo_name
+                                            if geo_name in MUNICIPALITY_TO_FA:
+                                                fa_geo_name = MUNICIPALITY_TO_FA[geo_name]
                                             else:
-                                                if(geo_name in FA_REGION):
-                                                    skills[skill_name]["geos"]["faRegion"][geo_name] = {}
-                                                    for month in months_between(start_date, max_date):
-                                                        skills[skill_name]["geos"]["faRegion"][geo_name][month.strftime("%Y-%m-%d")] = {
-                                                            "num": 0,
-                                                            "organisations_num": 0,
-                                                            "details": {}
-                                                        }
+                                                continue
 
-                                                    if adObj["employer"] in skills[skill_name]["geos"]["faRegion"][geo_name][date[:-2]+"01"]["details"]:
-                                                        skills[skill_name]["geos"]["faRegion"][geo_name][date[:-2]+"01"]["details"][adObj["employer"]] += 1
-                                                        skills[skill_name]["geos"]["faRegion"][geo_name][date[:-2]+"01"]["num"] += 1
-                                                    else:
-                                                        skills[skill_name]["geos"]["faRegion"][geo_name][date[:-2]+"01"]["details"][adObj["employer"]] = 1
-                                                        skills[skill_name]["geos"]["faRegion"][geo_name][date[:-2]+"01"]["organisations_num"] += 1;
-                                                        skills[skill_name]["geos"]["faRegion"][geo_name][date[:-2]+"01"]["num"] += 1
+                                            if fa_geo_name in skills[skill_name]["geos"]["faRegion"]:
+                                                skills[skill_name]["geos"]["faRegion"][fa_geo_name][date[:-2]+"01"]["num"] += 1
+                                                if adObj["employer"] in skills[skill_name]["geos"]["faRegion"][fa_geo_name][date[:-2]+"01"]["details"]:
+                                                    skills[skill_name]["geos"]["faRegion"][fa_geo_name][date[:-2]+"01"]["details"][adObj["employer"]] += 1
+                                                else:
+                                                    skills[skill_name]["geos"]["faRegion"][fa_geo_name][date[:-2]+"01"]["organisations_num"] += 1;
+                                                    skills[skill_name]["geos"]["faRegion"][fa_geo_name][date[:-2]+"01"]["details"][adObj["employer"]] = 1
+                                            else:
+                                                skills[skill_name]["geos"]["faRegion"][fa_geo_name] = {}
+                                                for month in months_between(start_date, max_date):
+                                                    skills[skill_name]["geos"]["faRegion"][fa_geo_name][month.strftime("%Y-%m-%d")] = {
+                                                        "num": 0,
+                                                        "organisations_num": 0,
+                                                        "details": {}
+                                                    }
+
+                                                if adObj["employer"] in skills[skill_name]["geos"]["faRegion"][fa_geo_name][date[:-2]+"01"]["details"]:
+                                                    skills[skill_name]["geos"]["faRegion"][fa_geo_name][date[:-2]+"01"]["details"][adObj["employer"]] += 1
+                                                    skills[skill_name]["geos"]["faRegion"][fa_geo_name][date[:-2]+"01"]["num"] += 1
+                                                else:
+                                                    skills[skill_name]["geos"]["faRegion"][fa_geo_name][date[:-2]+"01"]["details"][adObj["employer"]] = 1
+                                                    skills[skill_name]["geos"]["faRegion"][fa_geo_name][date[:-2]+"01"]["organisations_num"] += 1;
+                                                    skills[skill_name]["geos"]["faRegion"][fa_geo_name][date[:-2]+"01"]["num"] += 1
 
                                             if geo_name in skills[skill_name]["geos"]["citys"]:
                                                 skills[skill_name]["geos"]["citys"][geo_name][date[:-2]+"01"]["num"] += 1
@@ -234,22 +238,21 @@ def enrich_ads(documents_input, enrich_skills=False, start_date=datetime.date(20
                                                 occupations[occupation_name]["geos"]["faRegion"][geo_name][date[:-2]+"01"]["details"][adObj["employer"]] = 1
                                                 occupations[occupation_name]["geos"]["faRegion"][geo_name][date[:-2]+"01"]["organisations_num"] += 1
                                         else:
-                                            if geo_name in FA_REGION:
-                                                occupations[occupation_name]["geos"]["faRegion"][geo_name] = {}
-                                                for month in months_between(start_date, max_date):
-                                                    occupations[occupation_name]["geos"]["faRegion"][geo_name][month.strftime("%Y-%m-%d")] = {
-                                                        "num": 0,
-                                                        "organisations_num": 0,
-                                                        "details": {}
-                                                    }
+                                            occupations[occupation_name]["geos"]["faRegion"][geo_name] = {}
+                                            for month in months_between(start_date, max_date):
+                                                occupations[occupation_name]["geos"]["faRegion"][geo_name][month.strftime("%Y-%m-%d")] = {
+                                                    "num": 0,
+                                                    "organisations_num": 0,
+                                                    "details": {}
+                                                }
 
-                                                if adObj["employer"] in occupations[occupation_name]["geos"]["faRegion"][geo_name][date[:-2]+"01"]["details"]:
-                                                    occupations[occupation_name]["geos"]["faRegion"][geo_name][date[:-2]+"01"]["details"][adObj["employer"]] += 1
-                                                    occupations[occupation_name]["geos"]["faRegion"][geo_name][date[:-2]+"01"]["num"] += 1
-                                                else:
-                                                    occupations[occupation_name]["geos"]["faRegion"][geo_name][date[:-2]+"01"]["details"][adObj["employer"]] = 1
-                                                    occupations[occupation_name]["geos"]["faRegion"][geo_name][date[:-2]+"01"]["organisations_num"] += 1
-                                                    occupations[occupation_name]["geos"]["faRegion"][geo_name][date[:-2]+"01"]["num"] += 1
+                                            if adObj["employer"] in occupations[occupation_name]["geos"]["faRegion"][geo_name][date[:-2]+"01"]["details"]:
+                                                occupations[occupation_name]["geos"]["faRegion"][geo_name][date[:-2]+"01"]["details"][adObj["employer"]] += 1
+                                                occupations[occupation_name]["geos"]["faRegion"][geo_name][date[:-2]+"01"]["num"] += 1
+                                            else:
+                                                occupations[occupation_name]["geos"]["faRegion"][geo_name][date[:-2]+"01"]["details"][adObj["employer"]] = 1
+                                                occupations[occupation_name]["geos"]["faRegion"][geo_name][date[:-2]+"01"]["organisations_num"] += 1
+                                                occupations[occupation_name]["geos"]["faRegion"][geo_name][date[:-2]+"01"]["num"] += 1
 
                                         if geo_name in occupations[occupation_name]["geos"]["citys"]:
                                             occupations[occupation_name]["geos"]["citys"][geo_name][date[:-2]+"01"]["num"] += 1;

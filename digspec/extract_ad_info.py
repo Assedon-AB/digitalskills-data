@@ -27,7 +27,8 @@ def extract_fields(ads_data, it_concept_ids = ["UXKZ_3zZ_ipB", "DJh5_yyF_hEM", "
                   "doc_id": str(ad["id"]),
                   "doc_headline": ad["headline"].lower(),
                   "doc_text": ad["description"]["text"].replace("\n\n", "").replace("\n", " ").lower(),
-                  "employer": ad["employer"]["name"]
+                  "employer": ad["employer"]["name"],
+                  "municipality": ad["workplace_address"]["municipality"]
               })
 
     return documents_input
