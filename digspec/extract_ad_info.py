@@ -63,5 +63,5 @@ def merge_into_all_ads(years=["2006","2007","2008", "2009","2010","2011","2012",
         json.dump(all_ads, fp)
     
 if __name__ == "__main__":
-    #extract_ad_info(years=["2022"])
-    merge_into_all_ads()
+    #extract_ad_info(years=["2022q3"])
+    merge_into_all_ads(years=["2006","2007","2008", "2009","2010","2011","2012","2013","2014","2015","2016","2017","2018","2019","2020","2021", "2022", "2022q3"])

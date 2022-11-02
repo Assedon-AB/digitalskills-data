@@ -60,6 +60,7 @@ def enrich_ads(documents_input, enrich_skills=False, start_date=datetime.date(20
         i = 0
         adId = 0
         while len(documents_input) >= 100:
+            print(f"[{i}] Running 100 documents")
             i+=1
             body = json.dumps({
                 "documents_input": documents_input[:100],

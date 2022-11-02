@@ -13,7 +13,7 @@ AD_COUNT_THRESHOLD = 20
 
 def main(use_enrichment=False):
     start_date = datetime.date(2006, 1, 1)
-    max_date = datetime.date(2022, 7, 30)
+    max_date = datetime.date(2022, 9, 30)
 
     # Filtrera annonser.
     ads = []
