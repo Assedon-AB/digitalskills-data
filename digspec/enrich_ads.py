@@ -78,6 +78,7 @@ def enrich_ads(documents_input, enrich_skills=False, start_date=datetime.date(20
             skillsIndex = pd.DatetimeIndex(complete_date)
 
             for idx, ad in enumerate(resp):
+                skills_added = []
                 try:
                     skills_found = []
                     if(enrich_skills):
@@ -87,7 +88,6 @@ def enrich_ads(documents_input, enrich_skills=False, start_date=datetime.date(20
                                 if skill["prediction"] >= PREDICTION_THRESHOLD:
                                     if skill_name not in skills:
                                         skills[skill_name] = { "series": pd.Series([0] * num, index=skillsIndex), "adIds": [], "count": 1, "skills": {}, "traits": {}, "geos": {"citys": {}, "faRegion": {}} }
-
                                     adObj = documents_input[:100][idx]
 
                                     if adObj:
@@ -105,10 +105,12 @@ def enrich_ads(documents_input, enrich_skills=False, start_date=datetime.date(20
                                         adId += 1
 
                                         for s in skills_found:
-                                            if s not in BLACKLIST:
+                                            if s not in BLACKLIST and s not in skills_found:
                                                 if s in skills[skill_name]["skills"]:
                                                     skills[skill_name]["skills"][s] += 1
+                                                    skills[skill_name]["skills"][s] += 1
                                                 else:
+                                                    skills[skill_name]["skills"][s] = 1
                                                     skills[skill_name]["skills"][s] = 1
 
                                         skills_found.append(skill_name);
@@ -121,6 +123,9 @@ def enrich_ads(documents_input, enrich_skills=False, start_date=datetime.date(20
                                                 skills[skill_name]["traits"][trait_name] = 1
 
                                         for geo in ad["enriched_candidates"]["geos"]:
+                                            if geo["prediction"] < PREDICTION_THRESHOLD:
+                                                continue
+
                                             geo_name = geo["concept_label"].lower().strip()
                                             fa_geo_name = geo_name
                                             if geo_name in MUNICIPALITY_TO_FA:
