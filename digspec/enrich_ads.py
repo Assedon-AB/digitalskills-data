@@ -234,6 +234,9 @@ def enrich_ads(documents_input, enrich_skills=False, start_date=datetime.date(20
                                             occupations[occupation_name]["traits"][trait_name] = 1
 
                                     for geo in ad["enriched_candidates"]["geos"]:
+                                        if geo["prediction"] < PREDICTION_THRESHOLD:
+                                            continue
+
                                         geo_name = geo["concept_label"].lower().strip()
 
                                         if geo_name in occupations[occupation_name]["geos"]["faRegion"]:
